@@ -1,0 +1,229 @@
+<div class="settings-tabs">
+    <button class="tab-btn active" data-tab="business">Informations</button>
+    <button class="tab-btn" data-tab="hours">Horaires</button>
+    <button class="tab-btn" data-tab="theme">Thème</button>
+    <button class="tab-btn" data-tab="seo">SEO</button>
+    <button class="tab-btn" data-tab="password">Mot de passe</button>
+</div>
+
+<!-- Business Info -->
+<div class="tab-content active" id="tab-business">
+    <div class="form-card">
+        <h3>Informations de l'entreprise</h3>
+        <form method="POST" action="/admin/settings/business">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Nom de l'entreprise</label>
+                    <input type="text" name="name" value="<%= config.business.name %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Tagline</label>
+                    <input type="text" name="tagline" value="<%= config.business.tagline %>">
+                </div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Propriétaire</label>
+                    <input type="text" name="owner" value="<%= config.business.owner %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Profession</label>
+                    <input type="text" name="profession" value="<%= config.business.profession %>">
+                </div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Téléphone</label>
+                    <input type="text" name="phone" value="<%= config.business.phone %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Email</label>
+                    <input type="email" name="email" value="<%= config.business.email %>">
+                </div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>SIRET</label>
+                    <input type="text" name="siret" value="<%= config.business.siret %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Ville</label>
+                    <input type="text" name="city" value="<%= config.business.address.city %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Code postal</label>
+                    <input type="text" name="zip" value="<%= config.business.address.zip %>">
+                </div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Rayon d'intervention</label>
+                    <input type="text" name="serviceRadius" value="<%= config.business.serviceRadius %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Zone d'intervention</label>
+                    <input type="text" name="serviceArea" value="<%= config.business.serviceArea %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Supplément km (€)</label>
+                    <input type="number" name="extraKmPrice" step="0.01" value="<%= config.business.extraKmPrice %>">
+                </div>
+            </div>
+
+            <h4 style="margin: 1.5rem 0 0.5rem;">Réseaux sociaux</h4>
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Instagram</label>
+                    <input type="url" name="instagram" value="<%= config.business.social.instagram %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>Facebook</label>
+                    <input type="url" name="facebook" value="<%= config.business.social.facebook %>">
+                </div>
+                <div class="form-group-admin">
+                    <label>TikTok</label>
+                    <input type="url" name="tiktok" value="<%= config.business.social.tiktok %>">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary-admin">Enregistrer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Hours -->
+<div class="tab-content" id="tab-hours">
+    <div class="form-card">
+        <h3>Horaires d'ouverture</h3>
+        <form method="POST" action="/admin/settings/hours">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="hours-grid">
+                <% hours.forEach(h => { %>
+                <div class="hours-row">
+                    <label class="hours-day">
+                        <input type="checkbox" name="is_open_<%= h.day_of_week %>" <%= h.is_open ? 'checked' : '' %>>
+                        <strong><%= h.day_name %></strong>
+                    </label>
+                    <input type="time" name="open_<%= h.day_of_week %>" value="<%= h.open_time %>">
+                    <span>à</span>
+                    <input type="time" name="close_<%= h.day_of_week %>" value="<%= h.close_time %>">
+                </div>
+                <% }) %>
+            </div>
+
+            <button type="submit" class="btn btn-primary-admin" style="margin-top: 1rem;">Enregistrer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Theme -->
+<div class="tab-content" id="tab-theme">
+    <div class="form-card">
+        <h3>Couleurs du thème</h3>
+        <form method="POST" action="/admin/settings/theme">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="color-grid">
+                <div class="color-item">
+                    <label>Primary</label>
+                    <input type="color" name="primary" value="<%= config.theme.colors.primary %>">
+                </div>
+                <div class="color-item">
+                    <label>Primary Dark</label>
+                    <input type="color" name="primaryDark" value="<%= config.theme.colors.primaryDark %>">
+                </div>
+                <div class="color-item">
+                    <label>Secondary</label>
+                    <input type="color" name="secondary" value="<%= config.theme.colors.secondary %>">
+                </div>
+                <div class="color-item">
+                    <label>Accent</label>
+                    <input type="color" name="accent" value="<%= config.theme.colors.accent %>">
+                </div>
+                <div class="color-item">
+                    <label>Gold</label>
+                    <input type="color" name="gold" value="<%= config.theme.colors.gold %>">
+                </div>
+                <div class="color-item">
+                    <label>Text</label>
+                    <input type="color" name="text" value="<%= config.theme.colors.text %>">
+                </div>
+                <div class="color-item">
+                    <label>Text Light</label>
+                    <input type="color" name="textLight" value="<%= config.theme.colors.textLight %>">
+                </div>
+                <div class="color-item">
+                    <label>Background</label>
+                    <input type="color" name="bg" value="<%= config.theme.colors.bg %>">
+                </div>
+                <div class="color-item">
+                    <label>Background Light</label>
+                    <input type="color" name="bgLight" value="<%= config.theme.colors.bgLight %>">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary-admin" style="margin-top: 1.5rem;">Enregistrer</button>
+        </form>
+    </div>
+</div>
+
+<!-- SEO -->
+<div class="tab-content" id="tab-seo">
+    <div class="form-card">
+        <h3>Paramètres SEO</h3>
+        <form method="POST" action="/admin/settings/seo">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="form-group-admin">
+                <label>Titre du site</label>
+                <input type="text" name="seoTitle" value="<%= config.seo.title %>">
+            </div>
+            <div class="form-group-admin">
+                <label>Meta description</label>
+                <textarea name="seoDescription" rows="3"><%= config.seo.description %></textarea>
+            </div>
+            <div class="form-group-admin">
+                <label>URL canonique</label>
+                <input type="url" name="canonicalUrl" value="<%= config.seo.canonicalUrl %>" placeholder="https://www.votresite.fr">
+            </div>
+            <div class="form-group-admin">
+                <label>Google Analytics ID</label>
+                <input type="text" name="googleAnalyticsId" value="<%= config.seo.googleAnalyticsId %>" placeholder="G-XXXXXXXXXX">
+            </div>
+
+            <button type="submit" class="btn btn-primary-admin">Enregistrer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Password -->
+<div class="tab-content" id="tab-password">
+    <div class="form-card">
+        <h3>Changer le mot de passe</h3>
+        <form method="POST" action="/admin/settings/password">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="form-group-admin">
+                <label>Mot de passe actuel</label>
+                <input type="password" name="currentPassword" required>
+            </div>
+            <div class="form-group-admin">
+                <label>Nouveau mot de passe</label>
+                <input type="password" name="newPassword" required minlength="6">
+            </div>
+            <div class="form-group-admin">
+                <label>Confirmer le nouveau mot de passe</label>
+                <input type="password" name="confirmPassword" required minlength="6">
+            </div>
+
+            <button type="submit" class="btn btn-primary-admin">Changer le mot de passe</button>
+        </form>
+    </div>
+</div>

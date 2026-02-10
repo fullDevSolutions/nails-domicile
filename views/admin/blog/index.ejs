@@ -1,0 +1,55 @@
+<div class="admin-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h3 style="margin: 0;">Articles (<%= posts.length %>)</h3>
+    <a href="/admin/blog/create" class="btn btn-primary-admin">+ Nouvel article</a>
+</div>
+
+<% if (posts.length === 0) { %>
+<div class="empty-state">Aucun article pour le moment. Créez votre premier article !</div>
+<% } else { %>
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Auteur</th>
+                <th>Statut</th>
+                <th>Date de publication</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% posts.forEach(post => { %>
+            <tr>
+                <td><strong><%= post.title %></strong></td>
+                <td><%= post.author || '—' %></td>
+                <td>
+                    <% if (post.is_published) { %>
+                    <span class="badge badge-green">Publié</span>
+                    <% } else { %>
+                    <span class="badge badge-gray">Brouillon</span>
+                    <% } %>
+                </td>
+                <td><%= post.published_at ? formatDate(post.published_at) : '—' %></td>
+                <td>
+                    <div class="action-buttons">
+                        <form method="POST" action="/admin/blog/<%= post.id %>/toggle" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="btn btn-sm">
+                                <%= post.is_published ? 'Dépublier' : 'Publier' %>
+                            </button>
+                        </form>
+                        <a href="/admin/blog/<%= post.id %>/edit" class="btn btn-sm">Modifier</a>
+                        <form method="POST" action="/admin/blog/<%= post.id %>?_method=DELETE" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cet article ?')">
+                                Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>

@@ -1,0 +1,29 @@
+    <nav class="navbar" role="navigation" aria-label="Navigation principale">
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo" aria-label="<%= site.business.name %> - Accueil"><%- site.theme.logo.text %></a>
+                <ul class="nav-menu">
+                    <li><a href="/<%= currentPath === '/' ? '#home' : '' %>" class="nav-link<%= currentPath === '/' ? ' active' : '' %>">Accueil</a></li>
+                    <li><a href="<%= currentPath === '/' ? '#services' : '/services' %>" class="nav-link<%= currentPath === '/services' ? ' active' : '' %>">Services</a></li>
+                    <li><a href="/<%= currentPath === '/' ? '#about' : '' %>" class="nav-link">À propos</a></li>
+                    <% if (site.features.gallery) { %>
+                    <li><a href="/<%= currentPath === '/' ? '#gallery' : '' %>" class="nav-link">Galerie</a></li>
+                    <% } %>
+                    <% if (site.features.testimonials) { %>
+                    <li><a href="/<%= currentPath === '/' ? '#testimonials' : '' %>" class="nav-link">Avis</a></li>
+                    <% } %>
+                    <% if (site.features.blog) { %>
+                    <li><a href="/blog" class="nav-link<%= currentPath.startsWith('/blog') ? ' active' : '' %>">Blog</a></li>
+                    <% } %>
+                    <% if (site.features.booking) { %>
+                    <li><a href="/<%= currentPath === '/' ? '#booking' : '' %>" class="btn-book">Réserver</a></li>
+                    <% } %>
+                </ul>
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu de navigation" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>

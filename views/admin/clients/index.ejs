@@ -1,0 +1,42 @@
+<div class="admin-toolbar">
+    <form class="filter-form" method="GET" action="/admin/clients">
+        <input type="text" name="search" value="<%= search %>" placeholder="Rechercher un client..." class="search-input">
+        <button type="submit" class="btn btn-sm">Rechercher</button>
+        <% if (search) { %>
+        <a href="/admin/clients" class="btn btn-sm">Effacer</a>
+        <% } %>
+    </form>
+</div>
+
+<% if (clients.length === 0) { %>
+<p class="empty-state">Aucun client trouvé.</p>
+<% } else { %>
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Email</th>
+                <th>Total RDV</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% clients.forEach(c => { %>
+            <tr>
+                <td><%= c.id %></td>
+                <td><strong><%= c.first_name %> <%= c.last_name %></strong></td>
+                <td><%= c.phone %></td>
+                <td><%= c.email || '-' %></td>
+                <td><%= c.total_bookings %></td>
+                <td>
+                    <a href="/admin/clients/<%= c.id %>" class="btn btn-sm">Voir</a>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>

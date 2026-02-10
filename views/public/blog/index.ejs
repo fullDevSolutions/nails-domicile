@@ -1,0 +1,38 @@
+<section class="blog-hero">
+    <div class="blog-hero-overlay"></div>
+    <div class="container">
+        <div class="blog-hero-content fade-in">
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">Conseils & Inspirations</p>
+            <h1 class="section-title" style="color: #fff;">Le <span>Blog</span></h1>
+            <p class="blog-hero-text">Retrouvez mes astuces beauté, les dernières tendances nail art et tous mes conseils pour des ongles parfaits au quotidien.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <% if (posts.length === 0) { %>
+        <p style="text-align: center; color: var(--text-light);">Aucun article publié pour le moment. Revenez bientôt !</p>
+        <% } else { %>
+        <div class="blog-grid">
+            <% posts.forEach(post => { %>
+            <a href="/blog/<%= post.slug %>" class="blog-card fade-in">
+                <% if (post.cover_image) { %>
+                <div class="blog-card-image">
+                    <img src="<%= post.cover_image %>" alt="<%= post.title %>" loading="lazy">
+                </div>
+                <% } %>
+                <div class="blog-card-body">
+                    <p class="blog-card-date"><%= new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+                    <h2 class="blog-card-title"><%= post.title %></h2>
+                    <% if (post.excerpt) { %>
+                    <p class="blog-card-excerpt"><%= post.excerpt %></p>
+                    <% } %>
+                    <span class="blog-card-link">Lire la suite →</span>
+                </div>
+            </a>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+</section>

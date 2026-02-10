@@ -1,0 +1,59 @@
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container">
+            <p class="section-subtitle">Prestations détaillées</p>
+            <h1 class="section-title">Tous mes <span>Services</span></h1>
+        </div>
+    </section>
+
+    <!-- Services détaillés -->
+    <section class="section">
+        <div class="container">
+            <% services.forEach((service, index) => { %>
+            <div class="service-detail">
+                <div class="service-detail-grid<%= index % 2 !== 0 ? ' reverse' : '' %>">
+                    <div class="service-detail-image">
+                        <img src="<%= service.image || 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80' %>" alt="<%= service.name %>" loading="lazy">
+                    </div>
+                    <div class="service-detail-content">
+                        <h2><%= service.name %></h2>
+                        <span class="price-tag"><%= service.price %>€<%= service.price_unit !== 'pose' && service.price_unit !== 'séance' ? '' : '' %></span>
+                        <p class="duration-tag">⏱ Durée : <%= service.duration_minutes >= 60 ? Math.floor(service.duration_minutes / 60) + 'h' + (service.duration_minutes % 60 > 0 ? (service.duration_minutes % 60 < 10 ? '0' : '') + service.duration_minutes % 60 : '') : service.duration_minutes + ' min' %></p>
+                        <p><%= service.description %></p>
+                        <% if (service.includes && service.includes.length) { %>
+                        <div class="service-includes">
+                            <h4>Ce qui est inclus :</h4>
+                            <ul>
+                                <% service.includes.forEach(item => { %>
+                                <li><%= item %></li>
+                                <% }) %>
+                            </ul>
+                        </div>
+                        <% } %>
+                        <% if (service.options && service.options.length) { %>
+                        <p><strong>Options :</strong>
+                            <% service.options.forEach((opt, i) => { %>
+                            <%= opt.name %> <%= opt.price %><%= i < service.options.length - 1 ? ' | ' : '' %>
+                            <% }) %>
+                        </p>
+                        <% } %>
+                        <% if (site.features.booking) { %>
+                        <a href="/#booking" class="btn-primary">Réserver</a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <% if (site.features.booking) { %>
+    <section class="section booking-section">
+        <div class="container" style="text-align: center;">
+            <h2>Prête à avoir des ongles parfaits ?</h2>
+            <p style="max-width: 600px; margin: 1rem auto 2rem; opacity: 0.9;">Réservez votre créneau dès maintenant et je viendrai chez vous avec tout le matériel nécessaire.</p>
+            <a href="/#booking" class="btn-primary" style="background: white; color: var(--accent);">Prendre rendez-vous</a>
+        </div>
+    </section>
+    <% } %>

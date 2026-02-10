@@ -1,0 +1,79 @@
+{
+  "business": {
+    "name": "Nails by Sarah",
+    "tagline": "Pose d'ongles à domicile",
+    "owner": "Sarah",
+    "profession": "Prothésiste ongulaire",
+    "phone": "06 XX XX XX XX",
+    "email": "contact@nailsbysarah.fr",
+    "siret": "XXX XXX XXX XXXXX",
+    "address": {
+      "street": "",
+      "city": "Paris",
+      "zip": "75000",
+      "country": "France"
+    },
+    "serviceRadius": "15km",
+    "serviceArea": "Paris et proche banlieue",
+    "extraKmPrice": 0.50,
+    "social": {
+      "instagram": "https://instagram.com/nailsbysarah",
+      "facebook": "",
+      "tiktok": "",
+      "pinterest": ""
+    },
+    "about": {
+      "experience": "5 ans",
+      "description": "Passionnée par l'onglerie depuis plus de 5 ans, j'ai fait le choix de proposer mes services directement à domicile pour vous offrir une expérience unique et personnalisée.",
+      "description2": "Formée aux dernières techniques (gel UV, baby boomer, nail art), j'utilise exclusivement des produits professionnels de haute qualité, respectueux de vos ongles naturels.",
+      "features": ["Diplômée & certifiée", "Produits premium", "Hygiène irréprochable", "Déplacement gratuit"],
+      "image": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80"
+    }
+  },
+  "theme": {
+    "colors": {
+      "primary": "#D4A5A5",
+      "primaryDark": "#8B4F58",
+      "secondary": "#F5E6E8",
+      "accent": "#A15D68",
+      "gold": "#946B00",
+      "text": "#4A4A4A",
+      "textLight": "#595959",
+      "bg": "#FFFAFA",
+      "bgLight": "#FFF5F5",
+      "white": "#ffffff",
+      "border": "#F0E0E0",
+      "shadow": "rgba(212, 165, 165, 0.15)"
+    },
+    "fonts": {
+      "heading": "Playfair Display",
+      "body": "Cormorant Garamond",
+      "ui": "Inter"
+    },
+    "logo": {
+      "type": "text",
+      "text": "Nails by <span>Sarah</span>",
+      "image": ""
+    }
+  },
+  "seo": {
+    "title": "Nails by Sarah - Pose d'ongles à domicile",
+    "description": "Prothésiste ongulaire à domicile sur Paris et proche banlieue. Pose gel, capsules, nail art. Réservez votre rendez-vous en ligne.",
+    "ogImage": "",
+    "canonicalUrl": "",
+    "googleAnalyticsId": ""
+  },
+  "features": {
+    "booking": true,
+    "gallery": true,
+    "testimonials": true,
+    "blog": true,
+    "emailNotifications": true
+  },
+  "legal": {
+    "type": "Auto-entrepreneur",
+    "host": "OVH - 2 rue Kellermann, 59100 Roubaix",
+    "dataOfficer": "Sarah",
+    "dataOfficerEmail": "contact@nailsbysarah.fr"
+  }
+}

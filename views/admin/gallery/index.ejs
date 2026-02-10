@@ -1,0 +1,43 @@
+<div class="admin-toolbar">
+    <form method="POST" action="/admin/gallery/upload" enctype="multipart/form-data" class="upload-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="upload-area" id="uploadArea">
+            <input type="file" name="image" id="imageInput" accept="image/jpeg,image/png,image/webp" required>
+            <p>Cliquez ou glissez une image ici</p>
+            <small>JPG, PNG ou WebP - Max 5 Mo</small>
+        </div>
+        <div class="upload-options">
+            <input type="text" name="alt_text" placeholder="Texte alternatif (description)" class="upload-input">
+            <select name="category" class="upload-input">
+                <option value="general">Général</option>
+                <option value="manucure">Manucure</option>
+                <option value="gel">Gel UV</option>
+                <option value="capsules">Capsules</option>
+                <option value="nail-art">Nail Art</option>
+                <option value="pedicure">Pédicure</option>
+            </select>
+            <button type="submit" class="btn btn-primary-admin">Uploader</button>
+        </div>
+    </form>
+</div>
+
+<% if (images.length === 0) { %>
+<p class="empty-state">Aucune image dans la galerie.</p>
+<% } else { %>
+<div class="gallery-admin-grid">
+    <% images.forEach(img => { %>
+    <div class="gallery-admin-item" data-id="<%= img.id %>">
+        <img src="<%= img.filename.startsWith('http') ? img.filename : '/images/gallery/' + img.filename %>" alt="<%= img.alt_text %>">
+        <div class="gallery-admin-overlay">
+            <form method="POST" action="/admin/gallery/<%= img.id %>?_method=DELETE" style="display:inline;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette image ?')">Supprimer</button>
+            </form>
+        </div>
+        <div class="gallery-admin-info">
+            <small><%= img.category %></small>
+        </div>
+    </div>
+    <% }) %>
+</div>
+<% } %>

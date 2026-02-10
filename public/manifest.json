@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "Nails by Sarah - Pose d'ongles à domicile",
+  "short_name": "Nails by Sarah",
+  "description": "Prothésiste ongulaire à domicile. Réservez votre rendez-vous en ligne.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFAFA",
+  "theme_color": "#A15D68",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

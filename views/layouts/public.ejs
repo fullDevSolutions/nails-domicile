@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<%- include('../partials/head') %>
+<body>
+    <a href="#main-content" class="skip-to-content">Aller au contenu principal</a>
+    <%- include('../partials/navbar') %>
+
+    <main id="main-content">
+        <%- body %>
+    </main>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/main.js" defer></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <p class="hero-subtitle fade-in">Services à domicile</p>
+                <h1 class="hero-title fade-in">Des ongles <span>parfaits</span> sans bouger de chez vous</h1>
+                <p class="hero-text fade-in"><%= site.business.profession %> certifiée, je me déplace à votre domicile pour vous offrir une manucure de qualité salon dans le confort de votre maison.</p>
+                <div class="hero-buttons fade-in">
+                    <% if (site.features.booking) { %>
+                    <a href="#booking" class="btn-primary">Prendre rendez-vous</a>
+                    <% } %>
+                    <a href="#services" class="btn-secondary">Voir les prestations</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section class="section services-section" id="services">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-subtitle">Mes prestations</p>
+                <h2 class="section-title">Services & <span>Tarifs</span></h2>
+            </div>
+
+            <div class="services-grid">
+                <% services.forEach(service => { %>
+                <div class="service-card fade-in" data-service-id="<%= service.id %>">
+                    <div class="service-icon"><%= service.icon %></div>
+                    <h3><%= service.name %></h3>
+                    <p><%= service.description %></p>
+                    <p class="service-price"><%= service.price %>€ <span>/ <%= service.price_unit %></span></p>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section class="section about-section" id="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-image fade-in">
+                    <img src="<%= site.business.about.image %>" alt="<%= site.business.owner %> - <%= site.business.profession %>" loading="lazy" width="600" height="600">
+                </div>
+                <div class="about-content fade-in">
+                    <p class="section-subtitle">À propos</p>
+                    <h2>Je suis <%= site.business.owner %>, votre <%= site.business.profession.toLowerCase() %></h2>
+                    <p><%= site.business.about.description %></p>
+                    <p><%= site.business.about.description2 %></p>
+
+                    <div class="about-features">
+                        <% site.business.about.features.forEach(feature => { %>
+                        <div class="feature-item"><%= feature %></div>
+                        <% }) %>
+                    </div>
+
+                    <% if (site.features.booking) { %>
+                    <a href="#booking" class="btn-primary">Réserver avec <%= site.business.owner %></a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <% if (site.features.gallery && galleryImages.length) { %>
+    <!-- Gallery -->
+    <section class="section" id="gallery">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-subtitle">Réalisations</p>
+                <h2 class="section-title">Ma <span>Galerie</span></h2>
+            </div>
+
+            <div class="gallery-grid">
+                <% galleryImages.forEach(image => { %>
+                <div class="gallery-item fade-in">
+                    <img src="<%= image.filename.startsWith('http') ? image.filename : '/images/gallery/' + image.filename %>" alt="<%= image.alt_text %>" loading="lazy" width="300" height="300">
+                    <div class="gallery-overlay"><span>+</span></div>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <% if (site.features.testimonials && testimonials.length) { %>
+    <!-- Testimonials -->
+    <section class="section testimonials-section" id="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-subtitle">Témoignages</p>
+                <h2 class="section-title">Ce qu'elles <span>disent</span></h2>
+            </div>
+
+            <div class="testimonials-grid">
+                <% testimonials.forEach(t => { %>
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-stars"><%= '★'.repeat(t.rating) %><%= '☆'.repeat(5 - t.rating) %></div>
+                    <p class="testimonial-text">"<%= t.text %>"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar"><%= t.client_name.split(' ').map(n => n[0]).join('') %></div>
+                        <div>
+                            <p class="testimonial-name"><%= t.client_name %></p>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <% if (site.features.booking) { %>
+    <!-- Booking -->
+    <section class="section booking-section" id="booking">
+        <div class="container">
+            <div class="booking-grid">
+                <div class="booking-info fade-in">
+                    <p class="section-subtitle" style="color: #fff;">Réservation</p>
+                    <h2>Prenez rendez-vous en quelques clics</h2>
+                    <p>Je me déplace gratuitement dans un rayon de <%= site.business.serviceRadius %> autour de <%= site.business.address.city %>. Au-delà, un supplément de <%= site.business.extraKmPrice %>€/km est appliqué.</p>
+
+                    <div class="booking-details">
+                        <div class="booking-detail">
+                            <div class="booking-detail-icon">📍</div>
+                            <div>
+                                <strong>Zone d'intervention</strong><br>
+                                <%= site.business.serviceArea %>
+                            </div>
+                        </div>
+                        <div class="booking-detail">
+                            <div class="booking-detail-icon">🕐</div>
+                            <div>
+                                <strong>Horaires</strong><br>
+                                Lun-Sam : 9h-19h
+                            </div>
+                        </div>
+                        <div class="booking-detail">
+                            <div class="booking-detail-icon">📱</div>
+                            <div>
+                                <strong>Contact direct</strong><br>
+                                <%= site.business.phone %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="booking-form fade-in" id="bookingForm">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <h3>Demande de rendez-vous</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Prénom *</label>
+                            <input type="text" id="firstName" name="firstName" required placeholder="Votre prénom">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Nom *</label>
+                            <input type="text" id="lastName" name="lastName" required placeholder="Votre nom">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Téléphone *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="06 XX XX XX XX">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="votre@email.com">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="serviceId">Prestation souhaitée *</label>
+                        <select id="serviceId" name="serviceId" required>
+                            <option value="">Choisir une prestation</option>
+                            <% services.forEach(s => { %>
+                            <option value="<%= s.id %>"><%= s.name %> - <%= s.price %>€</option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="serviceOptionsContainer"></div>
+                    <p id="estimatedPrice"></p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="date">Date souhaitée *</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeSlot">Créneau préféré *</label>
+                            <select id="timeSlot" name="timeSlot" required>
+                                <option value="">Choisir</option>
+                                <option value="matin">Matin (9h-12h)</option>
+                                <option value="midi">Midi (12h-14h)</option>
+                                <option value="apresmidi">Après-midi (14h-17h)</option>
+                                <option value="soir">Fin de journée (17h-19h)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Adresse complète *</label>
+                        <input type="text" id="address" name="address" required placeholder="Numéro, rue, code postal, ville">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Remarques / Inspirations</label>
+                        <textarea id="notes" name="notes" rows="3" placeholder="Décrivez ce que vous souhaitez ou partagez des photos d'inspiration..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="bookingSubmit">Envoyer ma demande</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <% } %>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-label="Visionneuse d'images" aria-hidden="true">
+        <button class="lightbox-close" aria-label="Fermer">&times;</button>
+        <button class="lightbox-prev" aria-label="Image précédente">&#10094;</button>
+        <img id="lightboxImg" src="" alt="Image agrandie">
+        <button class="lightbox-next" aria-label="Image suivante">&#10095;</button>
+    </div>

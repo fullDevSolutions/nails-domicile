@@ -1,0 +1,94 @@
+<div class="detail-header">
+    <a href="/admin/bookings" class="btn btn-sm">← Retour</a>
+    <span class="status-badge status-<%= booking.status %>" style="font-size: 1rem; padding: 0.5rem 1.2rem;">
+        <%= statusLabels[booking.status] %>
+    </span>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3>Informations du rendez-vous</h3>
+        <div class="detail-row">
+            <span class="detail-label">Service</span>
+            <span><%= booking.service_icon %> <%= booking.service_name %></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Date</span>
+            <span><%= formatDate(booking.booking_date) %></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Créneau</span>
+            <span><%= timeSlotLabels[booking.time_slot] || booking.time_slot %></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Durée estimée</span>
+            <span><%= booking.duration_minutes %> min</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Prix</span>
+            <span><strong><%= booking.total_price %>€</strong></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Adresse</span>
+            <span><%= booking.address %></span>
+        </div>
+        <% if (booking.selected_options && booking.selected_options.length > 0) { %>
+        <div class="detail-row">
+            <span class="detail-label">Options</span>
+            <span>
+                <% booking.selected_options.forEach(opt => { %>
+                <span class="badge badge-gold" style="margin-right: 0.25rem;"><%= opt.name %> (<%= opt.price %>)</span>
+                <% }) %>
+            </span>
+        </div>
+        <% } %>
+        <% if (booking.notes) { %>
+        <div class="detail-row">
+            <span class="detail-label">Notes</span>
+            <span><%= booking.notes %></span>
+        </div>
+        <% } %>
+    </div>
+
+    <div class="detail-card">
+        <h3>Client</h3>
+        <div class="detail-row">
+            <span class="detail-label">Nom</span>
+            <span><a href="/admin/clients/<%= booking.client_id %>"><%= booking.first_name %> <%= booking.last_name %></a></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Téléphone</span>
+            <span><a href="tel:<%= booking.phone %>"><%= booking.phone %></a></span>
+        </div>
+        <% if (booking.email) { %>
+        <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span><a href="mailto:<%= booking.email %>"><%= booking.email %></a></span>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<div class="detail-actions">
+    <h3>Changer le statut</h3>
+    <div class="action-buttons">
+        <% ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'].forEach(s => { %>
+        <% if (s !== booking.status) { %>
+        <form method="POST" action="/admin/bookings/<%= booking.id %>/status" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="status" value="<%= s %>">
+            <button type="submit" class="btn btn-sm status-btn-<%= s %>">
+                <%= statusLabels[s] %>
+            </button>
+        </form>
+        <% } %>
+        <% }) %>
+    </div>
+
+    <form method="POST" action="/admin/bookings/<%= booking.id %>?_method=DELETE" style="margin-top: 2rem;">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette réservation ?')">
+            Supprimer
+        </button>
+    </form>
+</div>

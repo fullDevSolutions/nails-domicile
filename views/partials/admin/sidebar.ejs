@@ -1,0 +1,51 @@
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+        <a href="/admin"><%- site.theme.logo.text %></a>
+        <span class="sidebar-badge">Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="/admin" class="sidebar-link<%= currentPath === '/admin' ? ' active' : '' %>">
+            <span class="sidebar-icon">📊</span> Dashboard
+            <% if (typeof reminderCount !== 'undefined' && reminderCount > 0) { %>
+            <span class="sidebar-badge-count"><%= reminderCount %></span>
+            <% } %>
+        </a>
+        <a href="/admin/bookings" class="sidebar-link<%= currentPath.startsWith('/admin/bookings') ? ' active' : '' %>">
+            <span class="sidebar-icon">📅</span> Réservations
+        </a>
+        <a href="/admin/blocked-dates" class="sidebar-link<%= currentPath.startsWith('/admin/blocked-dates') ? ' active' : '' %>">
+            <span class="sidebar-icon">🚫</span> Dates bloquées
+        </a>
+        <a href="/admin/clients" class="sidebar-link<%= currentPath.startsWith('/admin/clients') ? ' active' : '' %>">
+            <span class="sidebar-icon">👥</span> Clients
+        </a>
+        <a href="/admin/services" class="sidebar-link<%= currentPath.startsWith('/admin/services') ? ' active' : '' %>">
+            <span class="sidebar-icon">💅</span> Services
+        </a>
+        <a href="/admin/gallery" class="sidebar-link<%= currentPath.startsWith('/admin/gallery') ? ' active' : '' %>">
+            <span class="sidebar-icon">🖼️</span> Galerie
+        </a>
+        <a href="/admin/testimonials" class="sidebar-link<%= currentPath.startsWith('/admin/testimonials') ? ' active' : '' %>">
+            <span class="sidebar-icon">⭐</span> Témoignages
+        </a>
+        <% if (site.features.blog) { %>
+        <a href="/admin/blog" class="sidebar-link<%= currentPath.startsWith('/admin/blog') ? ' active' : '' %>">
+            <span class="sidebar-icon">📝</span> Blog
+        </a>
+        <% } %>
+        <a href="/admin/settings" class="sidebar-link<%= currentPath.startsWith('/admin/settings') ? ' active' : '' %>">
+            <span class="sidebar-icon">⚙️</span> Paramètres
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/" class="sidebar-link" target="_blank">
+            <span class="sidebar-icon">🌐</span> Voir le site
+        </a>
+        <form action="/admin/logout" method="POST" style="display:inline;">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="sidebar-link sidebar-logout">
+                <span class="sidebar-icon">🚪</span> Déconnexion
+            </button>
+        </form>
+    </div>
+</aside>

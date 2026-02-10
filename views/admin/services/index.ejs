@@ -1,0 +1,51 @@
+<div class="admin-toolbar">
+    <a href="/admin/services/create" class="btn btn-primary-admin">+ Nouveau service</a>
+</div>
+
+<% if (services.length === 0) { %>
+<p class="empty-state">Aucun service créé.</p>
+<% } else { %>
+<div class="table-responsive">
+    <table class="admin-table" id="servicesTable">
+        <thead>
+            <tr>
+                <th>Ordre</th>
+                <th>Icône</th>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Durée</th>
+                <th>Actif</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% services.forEach((s, i) => { %>
+            <tr data-id="<%= s.id %>">
+                <td class="drag-handle" style="cursor: grab;">☰ <%= i + 1 %></td>
+                <td><%= s.icon %></td>
+                <td><strong><%= s.name %></strong></td>
+                <td><%= s.price %>€ / <%= s.price_unit %></td>
+                <td><%= s.duration_minutes %> min</td>
+                <td>
+                    <form method="POST" action="/admin/services/<%= s.id %>/toggle" style="display:inline;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="toggle-btn <%= s.is_active ? 'active' : '' %>">
+                            <%= s.is_active ? 'Actif' : 'Inactif' %>
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/admin/services/<%= s.id %>/edit" class="btn btn-sm">Modifier</a>
+                        <form method="POST" action="/admin/services/<%= s.id %>?_method=DELETE" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ce service ?')">Suppr.</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>

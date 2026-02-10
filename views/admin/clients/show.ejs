@@ -1,0 +1,68 @@
+<div class="detail-header">
+    <a href="/admin/clients" class="btn btn-sm">← Retour</a>
+</div>
+
+<div class="detail-grid">
+    <div class="detail-card">
+        <h3>Informations client</h3>
+        <div class="detail-row">
+            <span class="detail-label">Nom complet</span>
+            <span><%= client.first_name %> <%= client.last_name %></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Téléphone</span>
+            <span><a href="tel:<%= client.phone %>"><%= client.phone %></a></span>
+        </div>
+        <% if (client.email) { %>
+        <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span><a href="mailto:<%= client.email %>"><%= client.email %></a></span>
+        </div>
+        <% } %>
+        <% if (client.address) { %>
+        <div class="detail-row">
+            <span class="detail-label">Adresse</span>
+            <span><%= client.address %></span>
+        </div>
+        <% } %>
+        <div class="detail-row">
+            <span class="detail-label">Total rendez-vous</span>
+            <span><strong><%= client.total_bookings %></strong></span>
+        </div>
+    </div>
+</div>
+
+<h3 style="margin: 2rem 0 1rem;">Historique des rendez-vous</h3>
+
+<% if (bookings.length === 0) { %>
+<p class="empty-state">Aucun rendez-vous pour ce client.</p>
+<% } else { %>
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Créneau</th>
+                <th>Prix</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% bookings.forEach(b => { %>
+            <tr>
+                <td><%= b.id %></td>
+                <td><%= b.service_icon %> <%= b.service_name %></td>
+                <td><%= formatDate(b.booking_date) %></td>
+                <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
+                <td><%= b.total_price %>€</td>
+                <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
+                <td><a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>

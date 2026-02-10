@@ -1,0 +1,34 @@
+    <section class="page-hero">
+        <div class="container">
+            <h1 class="section-title">Mentions <span>Légales</span></h1>
+        </div>
+    </section>
+
+    <section class="section legal-section">
+        <div class="container legal-content">
+            <h2>1. Éditeur du site</h2>
+            <p>
+                <strong><%= site.business.name %></strong><br>
+                <%= site.legal.type %><br>
+                <% if (site.business.siret) { %>SIRET : <%= site.business.siret %><br><% } %>
+                <% if (site.business.address.street) { %><%= site.business.address.street %>, <% } %><%= site.business.address.zip %> <%= site.business.address.city %><br>
+                Téléphone : <%= site.business.phone %><br>
+                Email : <%= site.business.email %>
+            </p>
+
+            <h2>2. Hébergement</h2>
+            <p><%= site.legal.host %></p>
+
+            <h2>3. Propriété intellectuelle</h2>
+            <p>L'ensemble du contenu de ce site (textes, images, vidéos, logos) est la propriété exclusive de <%= site.business.name %> et est protégé par les lois relatives à la propriété intellectuelle. Toute reproduction, même partielle, est interdite sans autorisation préalable.</p>
+
+            <h2>4. Responsabilité</h2>
+            <p><%= site.business.name %> s'efforce d'assurer l'exactitude des informations diffusées sur ce site, mais ne saurait être tenu responsable des erreurs, omissions ou résultats obtenus suite à l'utilisation de ces informations.</p>
+
+            <h2>5. Données personnelles</h2>
+            <p>Les données collectées via les formulaires de ce site sont destinées exclusivement à <%= site.business.name %> pour le traitement de vos demandes. Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données. Pour exercer ce droit, contactez : <a href="mailto:<%= site.legal.dataOfficerEmail %>"><%= site.legal.dataOfficerEmail %></a>.</p>
+
+            <h2>6. Cookies</h2>
+            <p>Ce site utilise des cookies techniques nécessaires à son fonctionnement. Aucun cookie publicitaire ou de suivi n'est utilisé sans votre consentement explicite.</p>
+        </div>
+    </section>

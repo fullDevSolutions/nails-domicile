@@ -1,0 +1,78 @@
+<div class="admin-toolbar">
+    <form class="filter-form" method="GET" action="/admin/bookings">
+        <select name="status" onchange="this.form.submit()">
+            <option value="">Tous les statuts</option>
+            <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>En attente</option>
+            <option value="confirmed" <%= filters.status === 'confirmed' ? 'selected' : '' %>>Confirmé</option>
+            <option value="completed" <%= filters.status === 'completed' ? 'selected' : '' %>>Terminé</option>
+            <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Annulé</option>
+            <option value="no_show" <%= filters.status === 'no_show' ? 'selected' : '' %>>Absent</option>
+        </select>
+        <input type="date" name="date" value="<%= filters.date || '' %>" onchange="this.form.submit()">
+        <select name="service_id" onchange="this.form.submit()">
+            <option value="">Tous les services</option>
+            <% services.forEach(s => { %>
+            <option value="<%= s.id %>" <%= filters.service_id == s.id ? 'selected' : '' %>><%= s.name %></option>
+            <% }) %>
+        </select>
+        <% if (filters.status || filters.date || filters.service_id) { %>
+        <a href="/admin/bookings" class="btn btn-sm">Effacer filtres</a>
+        <% } %>
+    </form>
+</div>
+
+<% if (bookings.length === 0) { %>
+<p class="empty-state">Aucune réservation trouvée.</p>
+<% } else { %>
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Créneau</th>
+                <th>Prix</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% bookings.forEach(b => { %>
+            <tr>
+                <td><%= b.id %></td>
+                <td>
+                    <strong><%= b.first_name %> <%= b.last_name %></strong><br>
+                    <small><%= b.phone %></small>
+                </td>
+                <td><%= b.service_icon %> <%= b.service_name %></td>
+                <td><%= formatDate(b.booking_date) %></td>
+                <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
+                <td><%= b.total_price %>€</td>
+                <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a>
+                        <% if (b.status === 'pending') { %>
+                        <form method="POST" action="/admin/bookings/<%= b.id %>/status" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="status" value="confirmed">
+                            <button type="submit" class="btn btn-sm btn-success">Confirmer</button>
+                        </form>
+                        <% } %>
+                        <% if (b.status === 'confirmed') { %>
+                        <form method="POST" action="/admin/bookings/<%= b.id %>/status" style="display:inline;">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-sm btn-info">Terminer</button>
+                        </form>
+                        <% } %>
+                    </div>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<% } %>

@@ -1,0 +1,58 @@
+<div class="detail-header">
+    <a href="/admin/services" class="btn btn-sm">← Retour</a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="<%= service ? '/admin/services/' + service.id : '/admin/services' %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="form-row-admin">
+            <div class="form-group-admin">
+                <label for="name">Nom du service *</label>
+                <input type="text" id="name" name="name" required value="<%= service ? service.name : '' %>" placeholder="Ex: Manucure Simple">
+            </div>
+            <div class="form-group-admin">
+                <label for="icon">Icône (emoji)</label>
+                <input type="text" id="icon" name="icon" value="<%= service ? service.icon : '💅' %>" maxlength="10" style="font-size: 1.5rem;">
+            </div>
+        </div>
+
+        <div class="form-row-admin">
+            <div class="form-group-admin">
+                <label for="price">Prix (€) *</label>
+                <input type="number" id="price" name="price" required step="0.01" min="0" value="<%= service ? service.price : '' %>">
+            </div>
+            <div class="form-group-admin">
+                <label for="priceUnit">Unité de prix</label>
+                <input type="text" id="priceUnit" name="priceUnit" value="<%= service ? service.price_unit : 'séance' %>" placeholder="séance, pose, ongle...">
+            </div>
+            <div class="form-group-admin">
+                <label for="durationMinutes">Durée (minutes) *</label>
+                <input type="number" id="durationMinutes" name="durationMinutes" required min="1" max="480" value="<%= service ? service.duration_minutes : '' %>">
+            </div>
+        </div>
+
+        <div class="form-group-admin">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"><%= service ? service.description : '' %></textarea>
+        </div>
+
+        <div class="form-group-admin">
+            <label for="includes">Éléments inclus (un par ligne)</label>
+            <textarea id="includes" name="includes" rows="6" placeholder="Limage et mise en forme&#10;Soin des cuticules&#10;Vernis au choix"><%= service && service.includes ? service.includes.join('\n') : '' %></textarea>
+            <small>Chaque ligne sera un élément de la liste "Ce qui est inclus"</small>
+        </div>
+
+        <div class="form-group-admin">
+            <label>
+                <input type="checkbox" name="isActive" value="true" <%= (!service || service.is_active) ? 'checked' : '' %>>
+                Service actif (visible sur le site)
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary-admin"><%= service ? 'Mettre à jour' : 'Créer le service' %></button>
+            <a href="/admin/services" class="btn">Annuler</a>
+        </div>
+    </form>
+</div>

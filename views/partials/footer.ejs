@@ -1,0 +1,45 @@
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo"><%- site.theme.logo.text %></a>
+                    <p><%= site.business.profession %> à domicile sur <%= site.business.serviceArea %>. Des ongles parfaits dans le confort de votre maison.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="/">Accueil</a></li>
+                        <li><a href="/services">Services</a></li>
+                        <li><a href="/mentions-legales">Mentions légales</a></li>
+                        <li><a href="/politique-confidentialite">Confidentialité</a></li>
+                        <% if (site.features.blog) { %>
+                        <li><a href="/blog">Blog</a></li>
+                        <% } %>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="/services">Manucure</a></li>
+                        <li><a href="/services">Pose Gel</a></li>
+                        <li><a href="/services">Capsules</a></li>
+                        <li><a href="/services">Nail Art</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><%= site.business.phone %></li>
+                        <li><%= site.business.email %></li>
+                        <li><%= site.business.address.city %>, <%= site.business.address.country %></li>
+                        <% if (site.features.booking) { %>
+                        <li><a href="/#booking">Réserver</a></li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <%= currentYear %> <%= site.business.name %> - Tous droits réservés</p>
+            </div>
+        </div>
+    </footer>

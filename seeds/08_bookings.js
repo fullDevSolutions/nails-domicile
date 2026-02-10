@@ -1,0 +1,238 @@
+exports.seed = async function(knex) {
+  await knex('bookings').del();
+  await knex('clients').del();
+
+  // Get service IDs
+  const services = await knex('services').select('id', 'name', 'price');
+  const svcMap = {};
+  services.forEach(s => { svcMap[s.name] = s; });
+
+  // Create clients
+  const clientData = [
+    { first_name: 'Marie', last_name: 'Dupont', phone: '06 12 34 56 78', email: 'marie.dupont@gmail.com', address: '15 rue de Rivoli, 75001 Paris', total_bookings: 5 },
+    { first_name: 'Sophie', last_name: 'Laurent', phone: '06 23 45 67 89', email: 'sophie.laurent@hotmail.fr', address: '8 avenue des Champs-Élysées, 75008 Paris', total_bookings: 3 },
+    { first_name: 'Léa', last_name: 'Martin', phone: '06 34 56 78 90', email: 'lea.m@yahoo.fr', address: '42 boulevard Haussmann, 75009 Paris', total_bookings: 2 },
+    { first_name: 'Camille', last_name: 'Bernard', phone: '06 45 67 89 01', email: 'camille.b@gmail.com', address: '3 rue de la Paix, 75002 Paris', total_bookings: 4 },
+    { first_name: 'Emma', last_name: 'Petit', phone: '06 56 78 90 12', email: 'emma.petit@outlook.fr', address: '27 rue du Faubourg Saint-Honoré, 75008 Paris', total_bookings: 1 },
+    { first_name: 'Chloé', last_name: 'Moreau', phone: '06 67 89 01 23', email: 'chloe.moreau@gmail.com', address: '11 rue de Sèvres, 75006 Paris', total_bookings: 2 },
+    { first_name: 'Inès', last_name: 'Garcia', phone: '06 78 90 12 34', email: 'ines.garcia@free.fr', address: '5 place de la République, 75003 Paris', total_bookings: 1 },
+    { first_name: 'Manon', last_name: 'Roux', phone: '06 89 01 23 45', email: 'manon.roux@gmail.com', address: '18 rue Oberkampf, 75011 Paris', total_bookings: 3 },
+  ];
+
+  const clientIds = await knex('clients').insert(clientData);
+  // MySQL returns first inserted ID
+  const firstClientId = clientIds[0];
+
+  const today = new Date();
+  const fmt = (d) => d.toISOString().split('T')[0];
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+
+  const bookings = [
+    // Past bookings (completed) - revenue for this month
+    {
+      client_id: firstClientId,
+      service_id: svcMap['Pose Gel UV'].id,
+      booking_date: fmt(addDays(today, -20)),
+      time_slot: 'matin',
+      address: '15 rue de Rivoli, 75001 Paris',
+      notes: 'Couleur nude rosé souhaitée',
+      selected_options: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]),
+      status: 'completed',
+      total_price: 55.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -21)
+    },
+    {
+      client_id: firstClientId + 1,
+      service_id: svcMap['Manucure Simple'].id,
+      booking_date: fmt(addDays(today, -15)),
+      time_slot: 'apresmidi',
+      address: '8 avenue des Champs-Élysées, 75008 Paris',
+      notes: null,
+      selected_options: null,
+      status: 'completed',
+      total_price: 25.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -16)
+    },
+    {
+      client_id: firstClientId + 3,
+      service_id: svcMap['Pose Capsules'].id,
+      booking_date: fmt(addDays(today, -12)),
+      time_slot: 'matin',
+      address: '3 rue de la Paix, 75002 Paris',
+      notes: 'Forme amande, longueur moyenne',
+      selected_options: null,
+      status: 'completed',
+      total_price: 55.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -13)
+    },
+    {
+      client_id: firstClientId + 2,
+      service_id: svcMap['Pédicure'].id,
+      booking_date: fmt(addDays(today, -10)),
+      time_slot: 'midi',
+      address: '42 boulevard Haussmann, 75009 Paris',
+      notes: null,
+      selected_options: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]),
+      status: 'completed',
+      total_price: 40.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -11)
+    },
+    {
+      client_id: firstClientId + 7,
+      service_id: svcMap['Pose Gel UV'].id,
+      booking_date: fmt(addDays(today, -7)),
+      time_slot: 'apresmidi',
+      address: '18 rue Oberkampf, 75011 Paris',
+      notes: 'French classique',
+      selected_options: JSON.stringify([{ name: 'French', price: '+5€' }]),
+      status: 'completed',
+      total_price: 50.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -8)
+    },
+    {
+      client_id: firstClientId + 5,
+      service_id: svcMap['Remplissage'].id,
+      booking_date: fmt(addDays(today, -5)),
+      time_slot: 'matin',
+      address: '11 rue de Sèvres, 75006 Paris',
+      notes: null,
+      selected_options: null,
+      status: 'completed',
+      total_price: 35.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -6)
+    },
+    {
+      client_id: firstClientId + 3,
+      service_id: svcMap['Remplissage'].id,
+      booking_date: fmt(addDays(today, -3)),
+      time_slot: 'soir',
+      address: '3 rue de la Paix, 75002 Paris',
+      notes: 'Changement de couleur : rouge bordeaux',
+      selected_options: null,
+      status: 'completed',
+      total_price: 35.00,
+      reminder_sent: true,
+      reminder_sent_at: addDays(today, -4)
+    },
+    // Cancelled booking
+    {
+      client_id: firstClientId + 6,
+      service_id: svcMap['Manucure Simple'].id,
+      booking_date: fmt(addDays(today, -2)),
+      time_slot: 'matin',
+      address: '5 place de la République, 75003 Paris',
+      notes: null,
+      selected_options: null,
+      status: 'cancelled',
+      total_price: 25.00,
+      reminder_sent: false
+    },
+    // Today's bookings (for reminders & dashboard)
+    {
+      client_id: firstClientId,
+      service_id: svcMap['Remplissage'].id,
+      booking_date: fmt(today),
+      time_slot: 'matin',
+      address: '15 rue de Rivoli, 75001 Paris',
+      notes: 'Remplissage pose gel du mois dernier',
+      selected_options: null,
+      status: 'confirmed',
+      total_price: 35.00,
+      reminder_sent: false
+    },
+    {
+      client_id: firstClientId + 1,
+      service_id: svcMap['Pose Gel UV'].id,
+      booking_date: fmt(today),
+      time_slot: 'apresmidi',
+      address: '8 avenue des Champs-Élysées, 75008 Paris',
+      notes: 'Couleur : rose pastel',
+      selected_options: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]),
+      status: 'pending',
+      total_price: 55.00,
+      reminder_sent: false
+    },
+    // Tomorrow's bookings (for reminders)
+    {
+      client_id: firstClientId + 2,
+      service_id: svcMap['Pose Capsules'].id,
+      booking_date: fmt(addDays(today, 1)),
+      time_slot: 'matin',
+      address: '42 boulevard Haussmann, 75009 Paris',
+      notes: 'Forme stiletto, longueur longue, couleur noire mate',
+      selected_options: null,
+      status: 'confirmed',
+      total_price: 55.00,
+      reminder_sent: false
+    },
+    {
+      client_id: firstClientId + 4,
+      service_id: svcMap['Manucure Simple'].id,
+      booking_date: fmt(addDays(today, 1)),
+      time_slot: 'soir',
+      address: '27 rue du Faubourg Saint-Honoré, 75008 Paris',
+      notes: 'Première visite !',
+      selected_options: null,
+      status: 'pending',
+      total_price: 25.00,
+      reminder_sent: false
+    },
+    // Upcoming bookings
+    {
+      client_id: firstClientId + 3,
+      service_id: svcMap['Pose Gel UV'].id,
+      booking_date: fmt(addDays(today, 3)),
+      time_slot: 'matin',
+      address: '3 rue de la Paix, 75002 Paris',
+      notes: 'Effet chrome miroir doré',
+      selected_options: JSON.stringify([{ name: 'French', price: '+5€' }]),
+      status: 'confirmed',
+      total_price: 50.00,
+      reminder_sent: false
+    },
+    {
+      client_id: firstClientId + 7,
+      service_id: svcMap['Remplissage'].id,
+      booking_date: fmt(addDays(today, 4)),
+      time_slot: 'midi',
+      address: '18 rue Oberkampf, 75011 Paris',
+      notes: null,
+      selected_options: null,
+      status: 'pending',
+      total_price: 35.00,
+      reminder_sent: false
+    },
+    {
+      client_id: firstClientId + 5,
+      service_id: svcMap['Pédicure'].id,
+      booking_date: fmt(addDays(today, 5)),
+      time_slot: 'apresmidi',
+      address: '11 rue de Sèvres, 75006 Paris',
+      notes: 'Pédicure + vernis semi-permanent',
+      selected_options: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]),
+      status: 'pending',
+      total_price: 40.00,
+      reminder_sent: false
+    },
+    {
+      client_id: firstClientId,
+      service_id: svcMap['Nail Art'].id,
+      booking_date: fmt(addDays(today, 7)),
+      time_slot: 'apresmidi',
+      address: '15 rue de Rivoli, 75001 Paris',
+      notes: 'Design floral pour mariage, 10 ongles',
+      selected_options: null,
+      status: 'pending',
+      total_price: 50.00,
+      reminder_sent: false
+    },
+  ];
+
+  await knex('bookings').insert(bookings);
+};

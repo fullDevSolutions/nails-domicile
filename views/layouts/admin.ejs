@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' - Admin' : 'Admin' %> | <%= site.business.name %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+    <% if (!isLoginPage) { %>
+    <%- include('../partials/admin/sidebar') %>
+    <% } %>
+
+    <div class="admin-main<%= isLoginPage ? ' admin-main--full' : '' %>">
+        <% if (!isLoginPage) { %>
+        <%- include('../partials/admin/header') %>
+        <% } %>
+
+        <div class="admin-content">
+            <% if (flashMessages.success && flashMessages.success.length) { %>
+            <div class="alert alert-success">
+                <% flashMessages.success.forEach(msg => { %><p><%= msg %></p><% }) %>
+            </div>
+            <% } %>
+            <% if (flashMessages.error && flashMessages.error.length) { %>
+            <div class="alert alert-error">
+                <% flashMessages.error.forEach(msg => { %><p><%= msg %></p><% }) %>
+            </div>
+            <% } %>
+
+            <%- body %>
+        </div>
+    </div>
+
+    <script src="/js/admin/main.js"></script>
+</body>
+</html>

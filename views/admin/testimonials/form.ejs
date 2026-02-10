@@ -1,0 +1,48 @@
+<div class="detail-header">
+    <a href="/admin/testimonials" class="btn btn-sm">← Retour</a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="<%= testimonial ? '/admin/testimonials/' + testimonial.id : '/admin/testimonials' %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="form-row-admin">
+            <div class="form-group-admin">
+                <label for="clientName">Nom du client *</label>
+                <input type="text" id="clientName" name="clientName" required value="<%= testimonial ? testimonial.client_name : '' %>" placeholder="Ex: Marie L.">
+            </div>
+            <div class="form-group-admin">
+                <label for="rating">Note (1-5) *</label>
+                <select id="rating" name="rating" required>
+                    <% for (let i = 5; i >= 1; i--) { %>
+                    <option value="<%= i %>" <%= testimonial && testimonial.rating === i ? 'selected' : (!testimonial && i === 5 ? 'selected' : '') %>><%= '★'.repeat(i) %><%= '☆'.repeat(5-i) %> (<%= i %>)</option>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group-admin">
+            <label for="text">Témoignage *</label>
+            <textarea id="text" name="text" rows="4" required placeholder="Le témoignage du client..."><%= testimonial ? testimonial.text : '' %></textarea>
+        </div>
+
+        <div class="form-group-admin">
+            <label>
+                <input type="checkbox" name="isFeatured" value="true" <%= testimonial && testimonial.is_featured ? 'checked' : '' %>>
+                Mettre en avant (affiché en priorité)
+            </label>
+        </div>
+
+        <div class="form-group-admin">
+            <label>
+                <input type="checkbox" name="isActive" value="true" <%= (!testimonial || testimonial.is_active) ? 'checked' : '' %>>
+                Actif (visible sur le site)
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary-admin"><%= testimonial ? 'Mettre à jour' : 'Ajouter' %></button>
+            <a href="/admin/testimonials" class="btn">Annuler</a>
+        </div>
+    </form>
+</div>

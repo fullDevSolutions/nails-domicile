@@ -1,0 +1,36 @@
+<div class="admin-toolbar">
+    <a href="/admin/testimonials/create" class="btn btn-primary-admin">+ Nouveau témoignage</a>
+</div>
+
+<% if (testimonials.length === 0) { %>
+<p class="empty-state">Aucun témoignage.</p>
+<% } else { %>
+<div class="testimonials-admin-grid">
+    <% testimonials.forEach(t => { %>
+    <div class="testimonial-admin-card">
+        <div class="testimonial-admin-header">
+            <div>
+                <strong><%= t.client_name %></strong>
+                <span class="stars"><%= '★'.repeat(t.rating) %><%= '☆'.repeat(5 - t.rating) %></span>
+            </div>
+            <div class="testimonial-admin-badges">
+                <% if (t.is_featured) { %><span class="badge badge-gold">Mis en avant</span><% } %>
+                <span class="badge <%= t.is_active ? 'badge-green' : 'badge-gray' %>"><%= t.is_active ? 'Actif' : 'Inactif' %></span>
+            </div>
+        </div>
+        <p class="testimonial-admin-text">"<%= t.text %>"</p>
+        <div class="action-buttons">
+            <a href="/admin/testimonials/<%= t.id %>/edit" class="btn btn-sm">Modifier</a>
+            <form method="POST" action="/admin/testimonials/<%= t.id %>/toggle" style="display:inline;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-sm"><%= t.is_active ? 'Désactiver' : 'Activer' %></button>
+            </form>
+            <form method="POST" action="/admin/testimonials/<%= t.id %>?_method=DELETE" style="display:inline;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ?')">Suppr.</button>
+            </form>
+        </div>
+    </div>
+    <% }) %>
+</div>
+<% } %>

@@ -1,0 +1,41 @@
+<section class="blog-post-hero" <% if (post.cover_image) { %>style="background-image: url('<%= post.cover_image %>');"<% } %>>
+    <div class="blog-post-hero-overlay"></div>
+    <div class="container">
+        <div class="blog-post-hero-content fade-in">
+            <a href="/blog" class="blog-back-link">← Retour au blog</a>
+            <h1 class="blog-post-title"><%= post.title %></h1>
+            <div class="blog-post-meta">
+                <% if (post.author) { %>
+                <span class="blog-meta-author">
+                    <span class="blog-meta-avatar"><%= post.author.charAt(0) %></span>
+                    <%= post.author %>
+                </span>
+                <span class="blog-meta-sep">|</span>
+                <% } %>
+                <span class="blog-meta-date"><%= new Date(post.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background: var(--white);">
+    <div class="container">
+        <div class="blog-content-wrapper">
+            <div class="blog-content">
+                <%- post.content %>
+            </div>
+
+            <div class="blog-share-section">
+                <p>Cet article vous a plu ? Partagez-le !</p>
+                <div class="blog-share-buttons">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(site.seo.canonicalUrl + '/blog/' + post.slug) %>" target="_blank" rel="noopener" class="blog-share-btn blog-share-facebook">Facebook</a>
+                    <a href="https://api.whatsapp.com/send?text=<%= encodeURIComponent(post.title + ' - ' + (site.seo.canonicalUrl || '') + '/blog/' + post.slug) %>" target="_blank" rel="noopener" class="blog-share-btn blog-share-whatsapp">WhatsApp</a>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="/blog" class="btn-secondary">← Tous les articles</a>
+            </div>
+        </div>
+    </div>
+</section>

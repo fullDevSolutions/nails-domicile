@@ -1,0 +1,82 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <title><%= typeof title !== 'undefined' ? title : site.seo.title %></title>
+    <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : site.seo.description %>">
+
+    <link rel="canonical" href="<%= canonicalUrl %>">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<%= typeof title !== 'undefined' ? title : site.seo.title %>">
+    <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : site.seo.description %>">
+    <meta property="og:url" content="<%= canonicalUrl %>">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    <% if (site.seo.ogImage) { %>
+    <meta property="og:image" content="<%= site.seo.ogImage %>">
+    <% } %>
+
+    <!-- Preconnect + Fonts (non render-blocking) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" id="googleFonts" href="https://fonts.googleapis.com/css2?family=<%= encodeURIComponent(site.theme.fonts.heading) %>:wght@400;500;600&family=<%= encodeURIComponent(site.theme.fonts.body) %>:wght@400;500;600&family=<%= encodeURIComponent(site.theme.fonts.ui) %>:wght@300;400;500;600&display=swap">
+    <script>var f=document.getElementById('googleFonts');f.addEventListener('load',function(){f.rel='stylesheet'});</script>
+    <noscript><link href="https://fonts.googleapis.com/css2?family=<%= encodeURIComponent(site.theme.fonts.heading) %>:wght@400;500;600&family=<%= encodeURIComponent(site.theme.fonts.body) %>:wght@400;500;600&family=<%= encodeURIComponent(site.theme.fonts.ui) %>:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Dynamic theme colors from config -->
+    <style>
+        :root {
+            --primary: <%= site.theme.colors.primary %>;
+            --primary-dark: <%= site.theme.colors.primaryDark %>;
+            --secondary: <%= site.theme.colors.secondary %>;
+            --accent: <%= site.theme.colors.accent %>;
+            --gold: <%= site.theme.colors.gold %>;
+            --text: <%= site.theme.colors.text %>;
+            --text-light: <%= site.theme.colors.textLight %>;
+            --bg: <%= site.theme.colors.bg %>;
+            --bg-light: <%= site.theme.colors.bgLight %>;
+            --white: <%= site.theme.colors.white %>;
+            --border: <%= site.theme.colors.border %>;
+            --shadow: <%= site.theme.colors.shadow %>;
+        }
+    </style>
+
+    <% if (site.seo.googleAnalyticsId) { %>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= site.seo.googleAnalyticsId %>"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '<%= site.seo.googleAnalyticsId %>');
+    </script>
+    <% } %>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="<%= site.theme.colors.accent %>">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+    <!-- Structured Data (LocalBusiness) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BeautySalon",
+        "name": "<%= site.business.name %>",
+        "description": "<%= site.seo.description %>",
+        "telephone": "<%= site.business.phone %>",
+        "email": "<%= site.business.email %>",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "<%= site.business.address.city %>",
+            "postalCode": "<%= site.business.address.zip %>",
+            "addressCountry": "FR"
+        },
+        "areaServed": "<%= site.business.serviceArea %>",
+        "priceRange": "€€",
+        "url": "<%= canonicalUrl %>"
+    }
+    </script>
+</head>

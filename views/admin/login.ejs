@@ -1,0 +1,32 @@
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1><%- site.theme.logo.text %></h1>
+            <p>Espace administration</p>
+        </div>
+
+        <% if (flashMessages.error && flashMessages.error.length) { %>
+        <div class="alert alert-error">
+            <% flashMessages.error.forEach(msg => { %><p><%= msg %></p><% }) %>
+        </div>
+        <% } %>
+
+        <form method="POST" action="/admin/login" class="login-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autofocus placeholder="admin@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+            </div>
+
+            <button type="submit" class="btn-login">Se connecter</button>
+        </form>
+
+        <a href="/" class="login-back">← Retour au site</a>
+    </div>
+</div>
