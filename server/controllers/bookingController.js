@@ -2,6 +2,7 @@ const Client = require('../models/Client');
 const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 const BlockedDate = require('../models/BlockedDate');
+const { sendBookingConfirmation } = require('../utils/mailer');
 
 const bookingController = {
   async create(req, res) {
@@ -62,6 +63,14 @@ const bookingController = {
 
       // Increment client bookings
       await Client.incrementBookings(client.id);
+
+      // Send confirmation emails (client + admin)
+      const booking = await Booking.findById(bookingId);
+      try {
+        await sendBookingConfirmation(booking, client, service);
+      } catch (emailErr) {
+        console.error('Booking confirmation email failed:', emailErr.message);
+      }
 
       res.json({
         success: true,

@@ -11,7 +11,15 @@ const store = new ConnectSessionKnexStore({
 
 const sessionConfig = {
   store,
-  secret: process.env.SESSION_SECRET || 'change-me',
+  secret: (() => {
+    if (!process.env.SESSION_SECRET) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('SESSION_SECRET environment variable is required in production');
+      }
+      return 'dev-secret-change-me-in-production';
+    }
+    return process.env.SESSION_SECRET;
+  })(),
   resave: false,
   saveUninitialized: false,
   name: 'nails.sid',

@@ -15,6 +15,9 @@
                         <% if (site.features.blog) { %>
                         <li><a href="/blog">Blog</a></li>
                         <% } %>
+                        <% if (demoMode) { %>
+                        <li><a href="/admin/login">Voir le dashboard</a></li>
+                        <% } %>
                     </ul>
                 </div>
                 <div class="footer-section">

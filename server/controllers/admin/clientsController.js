@@ -36,7 +36,7 @@ const clientsController = {
         layout: 'layouts/admin',
         title: `${client.first_name} ${client.last_name}`,
         isLoginPage: false,
-        client,
+        clientData: client,
         bookings,
         formatDate,
         timeSlotLabels,

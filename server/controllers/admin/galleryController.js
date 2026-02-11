@@ -60,9 +60,10 @@ const galleryController = {
 
   async update(req, res) {
     try {
+      const data = req.validatedBody;
       await GalleryImage.update(req.params.id, {
-        altText: req.body.alt_text,
-        category: req.body.category
+        altText: data.alt_text,
+        category: data.category
       });
       req.flash('success', 'Image mise à jour.');
       res.redirect('/admin/gallery');

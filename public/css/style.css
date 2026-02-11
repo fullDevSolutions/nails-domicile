@@ -773,6 +773,20 @@ button {
     margin-top: 0.3rem;
 }
 
+.form-group input.field-error,
+.form-group select.field-error,
+.form-group textarea.field-error {
+    border-color: #d9534f;
+    box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.1);
+}
+
+.form-group input.field-valid,
+.form-group select.field-valid,
+.form-group textarea.field-valid {
+    border-color: #5cb85c;
+    box-shadow: 0 0 0 3px rgba(92, 184, 92, 0.1);
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;

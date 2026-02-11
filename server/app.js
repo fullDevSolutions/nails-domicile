@@ -11,6 +11,7 @@ const expressLayouts = require('express-ejs-layouts');
 const { siteConfigMiddleware } = require('./middleware/siteConfig');
 const csrfProtection = require('./middleware/csrf');
 const { generalLimiter } = require('./middleware/rateLimiter');
+const demoGuard = require('./middleware/demoMode');
 
 const app = express();
 
@@ -87,6 +88,9 @@ app.use(csrfProtection);
 
 // Site config (available in all views)
 app.use(siteConfigMiddleware);
+
+// Demo mode guard (blocks writes in admin when DEMO_MODE=true)
+app.use('/admin', demoGuard);
 
 // Admin reminder count middleware
 const Booking = require('./models/Booking');

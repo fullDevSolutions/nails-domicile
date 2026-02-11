@@ -1,5 +1,6 @@
 const transporter = require('../../config/mail');
 const { getSiteConfig } = require('../middleware/siteConfig');
+const { sanitizeText } = require('../utils/helpers');
 
 async function sendBookingConfirmation(booking, client, service) {
   const site = getSiteConfig();
@@ -16,7 +17,7 @@ async function sendBookingConfirmation(booking, client, service) {
 
   if (client.email) {
     await transporter.sendMail({
-      from: `"${site.business.name}" <${process.env.MAIL_FROM || site.business.email}>`,
+      from: `"${sanitizeText(site.business.name)}" <${process.env.MAIL_FROM || site.business.email}>`,
       to: client.email,
       subject: `Confirmation de votre demande - ${site.business.name}`,
       html: `
@@ -40,7 +41,7 @@ async function sendBookingConfirmation(booking, client, service) {
   // Notification admin
   if (site.features.emailNotifications && site.business.email) {
     await transporter.sendMail({
-      from: `"${site.business.name}" <${process.env.MAIL_FROM || site.business.email}>`,
+      from: `"${sanitizeText(site.business.name)}" <${process.env.MAIL_FROM || site.business.email}>`,
       to: site.business.email,
       subject: `Nouvelle demande de RDV - ${client.first_name} ${client.last_name}`,
       html: `
@@ -88,7 +89,7 @@ async function sendBookingStatusUpdate(booking, client, service, newStatus) {
   });
 
   await transporter.sendMail({
-    from: `"${site.business.name}" <${process.env.MAIL_FROM || site.business.email}>`,
+    from: `"${sanitizeText(site.business.name)}" <${process.env.MAIL_FROM || site.business.email}>`,
     to: client.email,
     subject: info.subject,
     html: `

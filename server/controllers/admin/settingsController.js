@@ -34,20 +34,20 @@ const settingsController = {
   async updateBusiness(req, res) {
     try {
       const config = getSiteConfig();
-      const { name, tagline, owner, profession, phone, email, siret, city, zip, serviceRadius, serviceArea, extraKmPrice, instagram, facebook, tiktok } = req.body;
+      const { name, tagline, owner, profession, phone, email, siret, city, zip, serviceRadius, serviceArea, extraKmPrice, instagram, facebook, tiktok } = req.validatedBody;
 
-      config.business.name = name || config.business.name;
+      config.business.name = name;
       config.business.tagline = tagline || config.business.tagline;
-      config.business.owner = owner || config.business.owner;
+      config.business.owner = owner;
       config.business.profession = profession || config.business.profession;
-      config.business.phone = phone || config.business.phone;
-      config.business.email = email || config.business.email;
+      config.business.phone = phone;
+      config.business.email = email;
       config.business.siret = siret || config.business.siret;
       config.business.address.city = city || config.business.address.city;
       config.business.address.zip = zip || config.business.address.zip;
       config.business.serviceRadius = serviceRadius || config.business.serviceRadius;
       config.business.serviceArea = serviceArea || config.business.serviceArea;
-      config.business.extraKmPrice = parseFloat(extraKmPrice) || config.business.extraKmPrice;
+      config.business.extraKmPrice = extraKmPrice || config.business.extraKmPrice;
       config.business.social.instagram = instagram || '';
       config.business.social.facebook = facebook || '';
       config.business.social.tiktok = tiktok || '';
@@ -86,7 +86,7 @@ const settingsController = {
   async updateTheme(req, res) {
     try {
       const config = getSiteConfig();
-      const { primary, primaryDark, secondary, accent, gold, text, textLight, bg, bgLight } = req.body;
+      const { primary, primaryDark, secondary, accent, gold, text, textLight, bg, bgLight } = req.validatedBody;
 
       if (primary) config.theme.colors.primary = primary;
       if (primaryDark) config.theme.colors.primaryDark = primaryDark;
@@ -111,7 +111,7 @@ const settingsController = {
   async updateSeo(req, res) {
     try {
       const config = getSiteConfig();
-      const { seoTitle, seoDescription, canonicalUrl, googleAnalyticsId } = req.body;
+      const { seoTitle, seoDescription, canonicalUrl, googleAnalyticsId } = req.validatedBody;
 
       config.seo.title = seoTitle || config.seo.title;
       config.seo.description = seoDescription || config.seo.description;
@@ -130,17 +130,7 @@ const settingsController = {
 
   async updatePassword(req, res) {
     try {
-      const { currentPassword, newPassword, confirmPassword } = req.body;
-
-      if (newPassword !== confirmPassword) {
-        req.flash('error', 'Les mots de passe ne correspondent pas.');
-        return res.redirect('/admin/settings');
-      }
-
-      if (newPassword.length < 6) {
-        req.flash('error', 'Le mot de passe doit contenir au moins 6 caractères.');
-        return res.redirect('/admin/settings');
-      }
+      const { currentPassword, newPassword } = req.validatedBody;
 
       const user = await AdminUser.findById(req.session.adminUser.id);
       const valid = await AdminUser.verifyPassword(currentPassword, user.password_hash);

@@ -1,5 +1,5 @@
 const BlogPost = require('../../models/BlogPost');
-const { slugify, formatDate } = require('../../utils/helpers');
+const { slugify, formatDate, sanitizeContent } = require('../../utils/helpers');
 
 const blogController = {
   async index(req, res) {
@@ -33,6 +33,7 @@ const blogController = {
     try {
       const data = req.validatedBody;
       if (!data.slug) data.slug = slugify(data.title);
+      if (data.content) data.content = sanitizeContent(data.content);
       await BlogPost.create(data);
       req.flash('success', 'Article créé avec succès.');
       res.redirect('/admin/blog');
@@ -72,6 +73,7 @@ const blogController = {
     try {
       const data = req.validatedBody;
       if (!data.slug) data.slug = slugify(data.title);
+      if (data.content) data.content = sanitizeContent(data.content);
       await BlogPost.update(req.params.id, data);
       req.flash('success', 'Article mis à jour.');
       res.redirect('/admin/blog');

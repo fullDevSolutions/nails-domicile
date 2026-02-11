@@ -7,27 +7,27 @@
         <h3>Informations client</h3>
         <div class="detail-row">
             <span class="detail-label">Nom complet</span>
-            <span><%= client.first_name %> <%= client.last_name %></span>
+            <span><%= clientData.first_name %> <%= clientData.last_name %></span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Téléphone</span>
-            <span><a href="tel:<%= client.phone %>"><%= client.phone %></a></span>
+            <span><% if (demoMode) { %><%= maskPhone(clientData.phone) %><% } else { %><a href="tel:<%= clientData.phone %>"><%= clientData.phone %></a><% } %></span>
         </div>
-        <% if (client.email) { %>
+        <% if (clientData.email) { %>
         <div class="detail-row">
             <span class="detail-label">Email</span>
-            <span><a href="mailto:<%= client.email %>"><%= client.email %></a></span>
+            <span><% if (demoMode) { %><%= maskEmail(clientData.email) %><% } else { %><a href="mailto:<%= clientData.email %>"><%= clientData.email %></a><% } %></span>
         </div>
         <% } %>
-        <% if (client.address) { %>
+        <% if (clientData.address) { %>
         <div class="detail-row">
             <span class="detail-label">Adresse</span>
-            <span><%= client.address %></span>
+            <span><%= clientData.address %></span>
         </div>
         <% } %>
         <div class="detail-row">
             <span class="detail-label">Total rendez-vous</span>
-            <span><strong><%= client.total_bookings %></strong></span>
+            <span><strong><%= clientData.total_bookings %></strong></span>
         </div>
     </div>
 </div>

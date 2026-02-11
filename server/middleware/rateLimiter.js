@@ -23,4 +23,12 @@ const generalLimiter = rateLimit({
   legacyHeaders: false
 });
 
-module.exports = { loginLimiter, bookingLimiter, generalLimiter };
+const settingsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: 'Trop de modifications. Réessayez dans 15 minutes.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+module.exports = { loginLimiter, bookingLimiter, generalLimiter, settingsLimiter };

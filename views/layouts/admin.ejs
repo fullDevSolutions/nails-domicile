@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body class="admin-body">
+    <% if (demoMode && !isLoginPage) { %>
+    <div class="demo-banner">Mode démonstration — Les modifications sont désactivées</div>
+    <% } %>
+
     <% if (!isLoginPage) { %>
     <%- include('../partials/admin/sidebar') %>
     <% } %>
@@ -28,6 +32,11 @@
             <% if (flashMessages.error && flashMessages.error.length) { %>
             <div class="alert alert-error">
                 <% flashMessages.error.forEach(msg => { %><p><%= msg %></p><% }) %>
+            </div>
+            <% } %>
+            <% if (flashMessages.info && flashMessages.info.length) { %>
+            <div class="alert alert-info">
+                <% flashMessages.info.forEach(msg => { %><p><%= msg %></p><% }) %>
             </div>
             <% } %>
 

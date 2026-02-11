@@ -15,8 +15,12 @@ const Booking = {
     if (filters.status) {
       query = query.where('bookings.status', filters.status);
     }
-    if (filters.date) {
-      query = query.where('bookings.booking_date', filters.date);
+    if (filters.dateFrom && filters.dateTo) {
+      query = query.whereBetween('bookings.booking_date', [filters.dateFrom, filters.dateTo]);
+    } else if (filters.dateFrom) {
+      query = query.where('bookings.booking_date', '>=', filters.dateFrom);
+    } else if (filters.dateTo) {
+      query = query.where('bookings.booking_date', '<=', filters.dateTo);
     }
     if (filters.serviceId) {
       query = query.where('bookings.service_id', filters.serviceId);
@@ -84,6 +88,15 @@ const Booking = {
     return count;
   },
 
+  async todayCancelledCount() {
+    const today = new Date().toISOString().split('T')[0];
+    const [{ count }] = await db('bookings')
+      .where('booking_date', today)
+      .where('status', 'cancelled')
+      .count('id as count');
+    return count;
+  },
+
   async pendingCount() {
     const [{ count }] = await db('bookings')
       .where('status', 'pending')
@@ -98,6 +111,18 @@ const Booking = {
 
     const [result] = await db('bookings')
       .where('status', 'completed')
+      .whereBetween('booking_date', [firstDay, lastDay])
+      .sum('total_price as total');
+    return result.total || 0;
+  },
+
+  async monthForecastRevenue() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+    const [result] = await db('bookings')
+      .whereIn('status', ['completed', 'confirmed'])
       .whereBetween('booking_date', [firstDay, lastDay])
       .sum('total_price as total');
     return result.total || 0;
@@ -169,15 +194,48 @@ const Booking = {
     return row;
   },
 
-  async last30DaysStats() {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+  async monthlyCalendarData(year, month) {
+    const firstDay = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month + 1, 0);
+    const lastDayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+
+    const rows = await db('bookings')
+      .join('clients', 'bookings.client_id', 'clients.id')
+      .join('services', 'bookings.service_id', 'services.id')
+      .select(
+        'bookings.id',
+        'bookings.booking_date',
+        'bookings.time_slot',
+        'bookings.status',
+        'bookings.total_price',
+        'clients.first_name',
+        'clients.last_name',
+        'clients.phone',
+        'services.name as service_name',
+        'services.icon as service_icon'
+      )
+      .whereBetween('bookings.booking_date', [firstDay, lastDayStr])
+      .orderBy('bookings.booking_date', 'asc')
+      .orderByRaw("FIELD(bookings.time_slot, 'matin', 'midi', 'apresmidi', 'soir')");
+
+    const grouped = {};
+    for (const row of rows) {
+      const dateStr = new Date(row.booking_date).toISOString().split('T')[0];
+      if (!grouped[dateStr]) grouped[dateStr] = [];
+      grouped[dateStr].push(row);
+    }
+    return grouped;
+  },
+
+  async currentMonthStats() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
     return db('bookings')
-      .select(db.raw('DATE(booking_date) as date'))
+      .select(db.raw("DATE_FORMAT(booking_date, '%Y-%m-%d') as date"))
       .count('id as count')
-      .where('booking_date', '>=', startDate)
+      .whereBetween('booking_date', [firstDay, lastDay])
       .whereNotIn('status', ['cancelled'])
       .groupByRaw('DATE(booking_date)')
       .orderBy('date', 'asc');

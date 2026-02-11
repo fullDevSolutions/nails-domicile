@@ -5,13 +5,15 @@ const { formatDate, timeSlotLabels, statusLabels, statusColors } = require('../.
 const dashboardController = {
   async index(req, res) {
     try {
-      const [todayCount, pendingCount, clientCount, monthRevenue, upcoming, chartData, reminders] = await Promise.all([
+      const [todayCount, todayCancelled, pendingCount, clientCount, monthRevenue, monthForecast, upcoming, chartData, reminders] = await Promise.all([
         Booking.todayCount(),
+        Booking.todayCancelledCount(),
         Booking.pendingCount(),
         Client.count(),
         Booking.monthRevenue(),
+        Booking.monthForecastRevenue(),
         Booking.upcoming(5),
-        Booking.last30DaysStats(),
+        Booking.currentMonthStats(),
         Booking.needingReminder()
       ]);
 
@@ -19,7 +21,7 @@ const dashboardController = {
         layout: 'layouts/admin',
         title: 'Dashboard',
         isLoginPage: false,
-        stats: { todayCount, pendingCount, clientCount, monthRevenue },
+        stats: { todayCount, todayCancelled, pendingCount, clientCount, monthRevenue, monthForecast },
         upcoming,
         chartData,
         reminders,
@@ -35,7 +37,7 @@ const dashboardController = {
         layout: 'layouts/admin',
         title: 'Dashboard',
         isLoginPage: false,
-        stats: { todayCount: 0, pendingCount: 0, clientCount: 0, monthRevenue: 0 },
+        stats: { todayCount: 0, todayCancelled: 0, pendingCount: 0, clientCount: 0, monthRevenue: 0, monthForecast: 0 },
         upcoming: [],
         chartData: [],
         reminders: [],

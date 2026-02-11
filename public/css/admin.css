@@ -190,6 +190,12 @@ body.admin-body {
     border: 1px solid #f5c6cb;
 }
 
+.alert-info {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
 /* =================================
    DASHBOARD STATS
    ================================= */
@@ -850,6 +856,49 @@ body.admin-body {
 .login-back:hover { color: var(--admin-primary); }
 
 /* =================================
+   DEMO MODE
+   ================================= */
+.demo-banner {
+    background: linear-gradient(135deg, #F5E6E8 0%, #FFFAFA 100%);
+    border-bottom: 2px solid #D4A5A5;
+    color: #8B4F58;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    font-family: 'Playfair Display', 'Inter', serif;
+}
+
+.demo-credentials {
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #0c5460;
+}
+
+.demo-credentials strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.demo-credentials p {
+    margin: 0.2rem 0;
+}
+
+.demo-credentials code {
+    background: rgba(0,0,0,0.06);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* =================================
    SIDEBAR BADGE COUNT
    ================================= */
 .sidebar-badge-count {
@@ -944,6 +993,132 @@ body.admin-body {
 }
 
 /* =================================
+   CALENDAR VIEW
+   ================================= */
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.view-toggle .btn.active {
+    pointer-events: none;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-nav-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin: 0;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--admin-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--admin-shadow);
+}
+
+.calendar-header-cell {
+    background: var(--admin-bg);
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--admin-text-light);
+}
+
+.calendar-cell {
+    background: var(--admin-white);
+    min-height: 85px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--admin-text);
+}
+
+.calendar-cell:hover {
+    background: rgba(183, 110, 121, 0.05);
+}
+
+.calendar-cell.empty {
+    cursor: default;
+    background: var(--admin-bg);
+}
+
+.calendar-cell.empty:hover {
+    background: var(--admin-bg);
+}
+
+.calendar-cell.today {
+    box-shadow: inset 0 0 0 2px var(--admin-primary);
+}
+
+.calendar-cell.selected {
+    background: rgba(183, 110, 121, 0.12);
+}
+
+.calendar-cell.selected:hover {
+    background: rgba(183, 110, 121, 0.15);
+}
+
+.calendar-day-number {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--admin-text);
+}
+
+.calendar-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.calendar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.calendar-count {
+    font-size: 0.7rem;
+    color: var(--admin-text-light);
+    margin-top: auto;
+}
+
+.day-detail {
+    background: var(--admin-white);
+    border-radius: 12px;
+    box-shadow: var(--admin-shadow);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.day-detail h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--admin-text);
+}
+
+/* =================================
    EMPTY STATE
    ================================= */
 .empty-state {
@@ -1001,5 +1176,26 @@ body.admin-body {
 
     .form-row-admin {
         grid-template-columns: 1fr;
+    }
+
+    .calendar-cell {
+        min-height: 55px;
+        padding: 0.3rem;
+    }
+
+    .calendar-dots {
+        display: none;
+    }
+
+    .calendar-count {
+        font-size: 0.65rem;
+    }
+
+    .calendar-nav-title {
+        font-size: 1rem;
+    }
+
+    .day-detail {
+        padding: 1rem;
     }
 }

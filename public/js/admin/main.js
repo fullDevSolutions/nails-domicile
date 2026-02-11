@@ -47,6 +47,15 @@ document.querySelectorAll('.alert').forEach(alert => {
 });
 
 // =================================
+// FILTER AUTO-SUBMIT
+// =================================
+document.querySelectorAll('.filter-auto-submit').forEach(el => {
+    el.addEventListener('change', () => {
+        el.closest('form').submit();
+    });
+});
+
+// =================================
 // DELETE CONFIRMATION (forms with _method=DELETE)
 // =================================
 document.querySelectorAll('form[action*="_method=DELETE"]').forEach(form => {

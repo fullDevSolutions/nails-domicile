@@ -16,16 +16,24 @@
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required autofocus placeholder="admin@example.com">
+                <input type="email" id="email" name="email" required autofocus placeholder="admin@example.com" value="<%= demoMode ? 'demo@nailsbysarah.fr' : '' %>">
             </div>
 
             <div class="form-group">
                 <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+                <input type="password" id="password" name="password" required placeholder="Votre mot de passe" value="<%= demoMode ? 'demo1234' : '' %>">
             </div>
 
             <button type="submit" class="btn-login">Se connecter</button>
         </form>
+
+        <% if (demoMode) { %>
+        <div class="demo-credentials">
+            <strong>Identifiants de démonstration</strong>
+            <p>Email : <code>demo@nailsbysarah.fr</code></p>
+            <p>Mot de passe : <code>demo1234</code></p>
+        </div>
+        <% } %>
 
         <a href="/" class="login-back">← Retour au site</a>
     </div>

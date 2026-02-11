@@ -58,12 +58,12 @@
         </div>
         <div class="detail-row">
             <span class="detail-label">Téléphone</span>
-            <span><a href="tel:<%= booking.phone %>"><%= booking.phone %></a></span>
+            <span><% if (demoMode) { %><%= maskPhone(booking.phone) %><% } else { %><a href="tel:<%= booking.phone %>"><%= booking.phone %></a><% } %></span>
         </div>
         <% if (booking.email) { %>
         <div class="detail-row">
             <span class="detail-label">Email</span>
-            <span><a href="mailto:<%= booking.email %>"><%= booking.email %></a></span>
+            <span><% if (demoMode) { %><%= maskEmail(booking.email) %><% } else { %><a href="mailto:<%= booking.email %>"><%= booking.email %></a><% } %></span>
         </div>
         <% } %>
     </div>

@@ -28,8 +28,8 @@
             <tr>
                 <td><%= c.id %></td>
                 <td><strong><%= c.first_name %> <%= c.last_name %></strong></td>
-                <td><%= c.phone %></td>
-                <td><%= c.email || '-' %></td>
+                <td><%= maskPhone(c.phone) %></td>
+                <td><%= c.email ? maskEmail(c.email) : '-' %></td>
                 <td><%= c.total_bookings %></td>
                 <td>
                     <a href="/admin/clients/<%= c.id %>" class="btn btn-sm">Voir</a>

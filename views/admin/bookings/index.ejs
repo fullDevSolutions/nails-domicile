@@ -1,6 +1,120 @@
+<!-- View Toggle -->
+<div class="view-toggle">
+    <a href="/admin/bookings?view=calendar" class="btn btn-sm <%= viewMode === 'calendar' ? 'btn-primary-admin active' : '' %>">Calendrier</a>
+    <a href="/admin/bookings?view=list" class="btn btn-sm <%= viewMode === 'list' ? 'btn-primary-admin active' : '' %>">Liste</a>
+</div>
+
+<% if (viewMode === 'calendar') { %>
+<!-- ======= CALENDAR VIEW ======= -->
+<%
+  const monthStr = String(calendarMonth + 1).padStart(2, '0');
+  const currentMonthParam = calendarYear + '-' + monthStr;
+
+  // Previous month
+  let prevYear = calendarYear;
+  let prevMonth = calendarMonth - 1;
+  if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+  const prevParam = prevYear + '-' + String(prevMonth + 1).padStart(2, '0');
+
+  // Next month
+  let nextYear = calendarYear;
+  let nextMonth = calendarMonth + 1;
+  if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+  const nextParam = nextYear + '-' + String(nextMonth + 1).padStart(2, '0');
+
+  const todayStr = new Date().toISOString().split('T')[0];
+%>
+
+<div class="calendar-nav">
+    <a href="/admin/bookings?view=calendar&month=<%= prevParam %>" class="btn btn-sm">&larr; Précédent</a>
+    <h2 class="calendar-nav-title"><%= calendarMonthName %> <%= calendarYear %></h2>
+    <a href="/admin/bookings?view=calendar&month=<%= nextParam %>" class="btn btn-sm">Suivant &rarr;</a>
+</div>
+
+<div class="calendar-grid">
+    <div class="calendar-header-cell">Lun</div>
+    <div class="calendar-header-cell">Mar</div>
+    <div class="calendar-header-cell">Mer</div>
+    <div class="calendar-header-cell">Jeu</div>
+    <div class="calendar-header-cell">Ven</div>
+    <div class="calendar-header-cell">Sam</div>
+    <div class="calendar-header-cell">Dim</div>
+
+    <% for (let i = 0; i < calendarFirstDayOfWeek; i++) { %>
+    <div class="calendar-cell empty"></div>
+    <% } %>
+
+    <% for (let day = 1; day <= calendarDaysInMonth; day++) { %>
+    <%
+      const dayStr = calendarYear + '-' + monthStr + '-' + String(day).padStart(2, '0');
+      const dayBookings = calendarData[dayStr] || [];
+      const isToday = dayStr === todayStr;
+      const isSelected = dayStr === selectedDay;
+      let cellClass = 'calendar-cell';
+      if (isToday) cellClass += ' today';
+      if (isSelected) cellClass += ' selected';
+      if (dayBookings.length > 0) cellClass += ' has-bookings';
+    %>
+    <a href="/admin/bookings?view=calendar&month=<%= currentMonthParam %>&day=<%= dayStr %>" class="<%= cellClass %>">
+        <span class="calendar-day-number"><%= day %></span>
+        <% if (dayBookings.length > 0) { %>
+        <div class="calendar-dots">
+            <% dayBookings.forEach(function(b) { %>
+            <span class="calendar-dot" style="background: <%= statusColors[b.status] || '#ccc' %>" title="<%= statusLabels[b.status] %>"></span>
+            <% }) %>
+        </div>
+        <span class="calendar-count"><%= dayBookings.length %> RDV</span>
+        <% } %>
+    </a>
+    <% } %>
+</div>
+
+<% if (selectedDay) { %>
+<div class="day-detail">
+    <h3><%
+      const sd = new Date(selectedDay + 'T00:00:00');
+      const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    %><%= dayNames[sd.getDay()] %> <%= sd.getDate() %> <%= calendarMonthName %> <%= calendarYear %></h3>
+
+    <% if (selectedDayBookings.length === 0) { %>
+    <p class="empty-state">Aucune réservation ce jour.</p>
+    <% } else { %>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Créneau</th>
+                    <th>Client</th>
+                    <th>Service</th>
+                    <th>Prix</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% selectedDayBookings.forEach(function(b) { %>
+                <tr>
+                    <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
+                    <td><strong><%= b.first_name %> <%= b.last_name %></strong><br><small><%= maskPhone(b.phone) %></small></td>
+                    <td><%= b.service_icon %> <%= b.service_name %></td>
+                    <td><%= b.total_price %>&euro;</td>
+                    <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
+                    <td><a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+    <% } %>
+</div>
+<% } %>
+
+<% } else { %>
+<!-- ======= LIST VIEW ======= -->
 <div class="admin-toolbar">
     <form class="filter-form" method="GET" action="/admin/bookings">
-        <select name="status" onchange="this.form.submit()">
+        <input type="hidden" name="view" value="list">
+        <select name="status" class="filter-auto-submit">
             <option value="">Tous les statuts</option>
             <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>En attente</option>
             <option value="confirmed" <%= filters.status === 'confirmed' ? 'selected' : '' %>>Confirmé</option>
@@ -8,15 +122,17 @@
             <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Annulé</option>
             <option value="no_show" <%= filters.status === 'no_show' ? 'selected' : '' %>>Absent</option>
         </select>
-        <input type="date" name="date" value="<%= filters.date || '' %>" onchange="this.form.submit()">
-        <select name="service_id" onchange="this.form.submit()">
+        <input type="date" name="date_from" value="<%= filters.date_from || '' %>" title="Date début" placeholder="Du">
+        <input type="date" name="date_to" value="<%= filters.date_to || '' %>" title="Date fin" placeholder="Au">
+        <select name="service_id" class="filter-auto-submit">
             <option value="">Tous les services</option>
             <% services.forEach(s => { %>
             <option value="<%= s.id %>" <%= filters.service_id == s.id ? 'selected' : '' %>><%= s.name %></option>
             <% }) %>
         </select>
-        <% if (filters.status || filters.date || filters.service_id) { %>
-        <a href="/admin/bookings" class="btn btn-sm">Effacer filtres</a>
+        <button type="submit" class="btn btn-sm btn-primary-admin">Filtrer</button>
+        <% if (filters.status || filters.date_from || filters.date_to || filters.service_id) { %>
+        <a href="/admin/bookings?view=list" class="btn btn-sm">Effacer</a>
         <% } %>
     </form>
 </div>
@@ -44,12 +160,12 @@
                 <td><%= b.id %></td>
                 <td>
                     <strong><%= b.first_name %> <%= b.last_name %></strong><br>
-                    <small><%= b.phone %></small>
+                    <small><%= maskPhone(b.phone) %></small>
                 </td>
                 <td><%= b.service_icon %> <%= b.service_name %></td>
                 <td><%= formatDate(b.booking_date) %></td>
                 <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
-                <td><%= b.total_price %>€</td>
+                <td><%= b.total_price %>&euro;</td>
                 <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
                 <td>
                     <div class="action-buttons">
@@ -75,4 +191,5 @@
         </tbody>
     </table>
 </div>
+<% } %>
 <% } %>

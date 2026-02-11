@@ -155,6 +155,231 @@ class Lightbox {
 new Lightbox();
 
 // =================================
+// BOOKING VALIDATOR (client-side, mirrors Joi schema)
+// =================================
+const BookingValidator = {
+    rules: {
+        firstName: {
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+            messages: {
+                required: 'Le prénom est obligatoire',
+                minLength: 'Le prénom doit contenir au moins 2 caractères',
+                maxLength: 'Le prénom ne peut pas dépasser 50 caractères'
+            }
+        },
+        lastName: {
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+            messages: {
+                required: 'Le nom est obligatoire',
+                minLength: 'Le nom doit contenir au moins 2 caractères',
+                maxLength: 'Le nom ne peut pas dépasser 50 caractères'
+            }
+        },
+        phone: {
+            required: true,
+            pattern: /^[\d\s+()-]{10,20}$/,
+            messages: {
+                required: 'Le téléphone est obligatoire',
+                pattern: 'Numéro de téléphone invalide'
+            }
+        },
+        email: {
+            required: false,
+            pattern: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            messages: {
+                pattern: 'Adresse email invalide'
+            }
+        },
+        serviceId: {
+            required: true,
+            messages: {
+                required: 'Veuillez choisir une prestation'
+            }
+        },
+        date: {
+            required: true,
+            futureDate: true,
+            messages: {
+                required: 'La date est obligatoire',
+                futureDate: 'La date doit être dans le futur'
+            }
+        },
+        timeSlot: {
+            required: true,
+            oneOf: ['matin', 'midi', 'apresmidi', 'soir'],
+            messages: {
+                required: 'Le créneau est obligatoire',
+                oneOf: 'Créneau invalide'
+            }
+        },
+        address: {
+            required: true,
+            minLength: 10,
+            maxLength: 255,
+            messages: {
+                required: "L'adresse est obligatoire",
+                minLength: "L'adresse doit contenir au moins 10 caractères",
+                maxLength: "L'adresse ne peut pas dépasser 255 caractères"
+            }
+        },
+        notes: {
+            required: false,
+            maxLength: 1000,
+            messages: {
+                maxLength: 'Les remarques ne peuvent pas dépasser 1000 caractères'
+            }
+        }
+    },
+
+    validateField(name, value) {
+        const rule = this.rules[name];
+        if (!rule) return null;
+
+        const val = (value || '').trim();
+
+        if (rule.required && !val) {
+            return rule.messages.required;
+        }
+
+        if (!val) return null; // optional and empty → valid
+
+        if (rule.minLength && val.length < rule.minLength) {
+            return rule.messages.minLength;
+        }
+
+        if (rule.maxLength && val.length > rule.maxLength) {
+            return rule.messages.maxLength;
+        }
+
+        if (rule.pattern && !rule.pattern.test(val)) {
+            return rule.messages.pattern;
+        }
+
+        if (rule.oneOf && !rule.oneOf.includes(val)) {
+            return rule.messages.oneOf;
+        }
+
+        if (rule.futureDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const selected = new Date(val);
+            if (isNaN(selected.getTime()) || selected <= today) {
+                return rule.messages.futureDate;
+            }
+        }
+
+        return null;
+    },
+
+    showError(field, message) {
+        field.classList.remove('field-valid');
+        field.classList.add('field-error');
+
+        let errorEl = field.parentElement.querySelector('.error-text');
+        if (!errorEl) {
+            errorEl = document.createElement('span');
+            errorEl.className = 'error-text';
+            field.parentElement.appendChild(errorEl);
+        }
+        errorEl.textContent = message;
+    },
+
+    showValid(field) {
+        field.classList.remove('field-error');
+        field.classList.add('field-valid');
+
+        const errorEl = field.parentElement.querySelector('.error-text');
+        if (errorEl) errorEl.remove();
+    },
+
+    clearState(field) {
+        field.classList.remove('field-error', 'field-valid');
+        const errorEl = field.parentElement.querySelector('.error-text');
+        if (errorEl) errorEl.remove();
+    },
+
+    resetForm(form) {
+        form.querySelectorAll('.field-error, .field-valid').forEach(el => {
+            el.classList.remove('field-error', 'field-valid');
+        });
+        form.querySelectorAll('.error-text').forEach(el => el.remove());
+    },
+
+    validateForm() {
+        const fields = ['firstName', 'lastName', 'phone', 'email', 'serviceId', 'date', 'timeSlot', 'address', 'notes'];
+        let firstError = null;
+        let isValid = true;
+
+        fields.forEach(name => {
+            const field = document.getElementById(name);
+            if (!field) return;
+
+            const error = this.validateField(name, field.value);
+            if (error) {
+                this.showError(field, error);
+                if (!firstError) firstError = field;
+                isValid = false;
+            } else {
+                if (field.value.trim() || this.rules[name]?.required) {
+                    this.showValid(field);
+                } else {
+                    this.clearState(field);
+                }
+            }
+        });
+
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.focus();
+        }
+
+        return isValid;
+    },
+
+    init() {
+        const form = document.getElementById('bookingForm');
+        if (!form) return;
+
+        const fieldNames = Object.keys(this.rules);
+
+        fieldNames.forEach(name => {
+            const field = document.getElementById(name);
+            if (!field) return;
+
+            field.addEventListener('blur', () => {
+                const error = this.validateField(name, field.value);
+                if (error) {
+                    this.showError(field, error);
+                } else if (field.value.trim()) {
+                    this.showValid(field);
+                } else {
+                    this.clearState(field);
+                }
+            });
+
+            field.addEventListener('input', () => {
+                if (field.classList.contains('field-error')) {
+                    const error = this.validateField(name, field.value);
+                    if (!error) {
+                        if (field.value.trim()) {
+                            this.showValid(field);
+                        } else {
+                            this.clearState(field);
+                        }
+                    }
+                }
+            });
+        });
+    }
+};
+
+BookingValidator.init();
+
+// =================================
 // BOOKING FORM (fetch API)
 // =================================
 const bookingForm = document.getElementById('bookingForm');
@@ -162,6 +387,8 @@ const bookingForm = document.getElementById('bookingForm');
 if (bookingForm) {
     bookingForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        if (!BookingValidator.validateForm()) return;
 
         const submitBtn = document.getElementById('bookingSubmit');
         const originalText = submitBtn.textContent;
@@ -196,6 +423,7 @@ if (bookingForm) {
             if (result.success) {
                 showNotification('Demande envoyée ! Nous vous confirmerons votre RDV rapidement.', 'success');
                 bookingForm.reset();
+                BookingValidator.resetForm(bookingForm);
             } else {
                 const errorMsg = result.errors ? result.errors.join(', ') : (result.error || 'Une erreur est survenue');
                 showNotification(errorMsg, 'error');
