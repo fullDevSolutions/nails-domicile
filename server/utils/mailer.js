@@ -1,15 +1,9 @@
 const transporter = require('../../config/mail');
 const { getSiteConfig } = require('../middleware/siteConfig');
-const { sanitizeText } = require('../utils/helpers');
+const { sanitizeText, formatTimeSlot } = require('../utils/helpers');
 
 async function sendBookingConfirmation(booking, client, service) {
   const site = getSiteConfig();
-  const timeSlotLabels = {
-    matin: 'Matin (9h-12h)',
-    midi: 'Midi (12h-14h)',
-    apresmidi: 'Après-midi (14h-17h)',
-    soir: 'Fin de journée (17h-19h)'
-  };
 
   const dateFormatted = new Date(booking.booking_date).toLocaleDateString('fr-FR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -27,7 +21,7 @@ async function sendBookingConfirmation(booking, client, service) {
           <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
             <p><strong>Prestation :</strong> ${service.name}</p>
             <p><strong>Date :</strong> ${dateFormatted}</p>
-            <p><strong>Créneau :</strong> ${timeSlotLabels[booking.time_slot] || booking.time_slot}</p>
+            <p><strong>Créneau :</strong> ${formatTimeSlot(booking.time_slot)}${booking.time_slot_end ? ' - ' + formatTimeSlot(booking.time_slot_end) : ''}</p>
             <p><strong>Adresse :</strong> ${booking.address}</p>
             <p><strong>Prix estimé :</strong> ${booking.total_price}€</p>
           </div>
@@ -52,7 +46,7 @@ async function sendBookingConfirmation(booking, client, service) {
           <p><strong>Email :</strong> ${client.email || 'Non renseigné'}</p>
           <p><strong>Prestation :</strong> ${service.name} (${service.price}€)</p>
           <p><strong>Date :</strong> ${dateFormatted}</p>
-          <p><strong>Créneau :</strong> ${timeSlotLabels[booking.time_slot] || booking.time_slot}</p>
+          <p><strong>Créneau :</strong> ${formatTimeSlot(booking.time_slot)}${booking.time_slot_end ? ' - ' + formatTimeSlot(booking.time_slot_end) : ''}</p>
           <p><strong>Adresse :</strong> ${booking.address}</p>
           ${booking.notes ? `<p><strong>Notes :</strong> ${booking.notes}</p>` : ''}
           <p><a href="${process.env.APP_URL}/admin/bookings/${booking.id}">Voir dans le dashboard</a></p>

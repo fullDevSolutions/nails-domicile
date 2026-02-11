@@ -2,10 +2,25 @@ exports.seed = async function(knex) {
   await knex('bookings').del();
   await knex('clients').del();
 
-  // Get service IDs
-  const services = await knex('services').select('id', 'name', 'price');
+  // Get service IDs + durations
+  const services = await knex('services').select('id', 'name', 'price', 'duration_minutes');
   const svcMap = {};
   services.forEach(s => { svcMap[s.name] = s; });
+
+  // Helper: compute end time
+  function addMin(time, mins) {
+    const [h, m] = time.split(':').map(Number);
+    const total = h * 60 + m + mins;
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+
+  // Old slot → new time mapping
+  const slotToTime = {
+    matin: '09:00',
+    midi: '12:00',
+    apresmidi: '14:00',
+    soir: '17:00'
+  };
 
   // Create clients
   const clientData = [
@@ -28,425 +43,70 @@ exports.seed = async function(knex) {
   const fmt = (d) => d.toISOString().split('T')[0];
   const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
 
+  function makeBooking(clientIdx, serviceName, daysFromToday, oldSlot, opts) {
+    const svc = svcMap[serviceName];
+    const startTime = slotToTime[oldSlot];
+    const endTime = addMin(startTime, svc.duration_minutes);
+    return {
+      client_id: c + clientIdx,
+      service_id: svc.id,
+      booking_date: fmt(addDays(today, daysFromToday)),
+      time_slot: startTime,
+      time_slot_end: endTime,
+      address: clientData[clientIdx].address,
+      notes: opts.notes || null,
+      selected_options: opts.selectedOptions || null,
+      status: opts.status || 'pending',
+      total_price: opts.totalPrice || svc.price,
+      reminder_sent: opts.reminderSent || false,
+      reminder_sent_at: opts.reminderSentAt || null
+    };
+  }
+
   const bookings = [
     // ===== Mois dernier (M-2) — historique profond =====
-    {
-      client_id: c,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, -55)),
-      time_slot: 'matin',
-      address: clientData[0].address,
-      notes: 'Première pose gel, couleur nude',
-      selected_options: null,
-      status: 'completed',
-      total_price: 45.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -56)
-    },
-    {
-      client_id: c + 1,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -52)),
-      time_slot: 'apresmidi',
-      address: clientData[1].address,
-      notes: null,
-      selected_options: null,
-      status: 'completed',
-      total_price: 25.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -53)
-    },
-    {
-      client_id: c + 3,
-      service_id: svcMap['Pose Capsules'].id,
-      booking_date: fmt(addDays(today, -48)),
-      time_slot: 'matin',
-      address: clientData[3].address,
-      notes: 'Forme amande, rose pastel',
-      selected_options: null,
-      status: 'completed',
-      total_price: 55.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -49)
-    },
-    {
-      client_id: c + 4,
-      service_id: svcMap['Pédicure'].id,
-      booking_date: fmt(addDays(today, -45)),
-      time_slot: 'midi',
-      address: clientData[4].address,
-      notes: null,
-      selected_options: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]),
-      status: 'completed',
-      total_price: 40.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -46)
-    },
-    {
-      client_id: c + 7,
-      service_id: svcMap['Nail Art'].id,
-      booking_date: fmt(addDays(today, -42)),
-      time_slot: 'apresmidi',
-      address: clientData[7].address,
-      notes: 'Motif géométrique noir et doré',
-      selected_options: JSON.stringify([{ name: 'Complexe', price: '10€/ongle' }]),
-      status: 'completed',
-      total_price: 50.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -43)
-    },
-    {
-      client_id: c + 8,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -40)),
-      time_slot: 'soir',
-      address: clientData[8].address,
-      notes: 'Vernis semi-permanent rouge',
-      selected_options: null,
-      status: 'completed',
-      total_price: 25.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -41)
-    },
-    // No-show M-2
-    {
-      client_id: c + 6,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(addDays(today, -38)),
-      time_slot: 'matin',
-      address: clientData[6].address,
-      notes: null,
-      selected_options: null,
-      status: 'no_show',
-      total_price: 35.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -39)
-    },
+    makeBooking(0, 'Pose Gel UV', -55, 'matin', { notes: 'Première pose gel, couleur nude', status: 'completed', totalPrice: 45, reminderSent: true, reminderSentAt: addDays(today, -56) }),
+    makeBooking(1, 'Manucure Simple', -52, 'apresmidi', { status: 'completed', totalPrice: 25, reminderSent: true, reminderSentAt: addDays(today, -53) }),
+    makeBooking(3, 'Pose Capsules', -48, 'matin', { notes: 'Forme amande, rose pastel', status: 'completed', totalPrice: 55, reminderSent: true, reminderSentAt: addDays(today, -49) }),
+    makeBooking(4, 'Pédicure', -45, 'midi', { selectedOptions: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]), status: 'completed', totalPrice: 40, reminderSent: true, reminderSentAt: addDays(today, -46) }),
+    makeBooking(7, 'Nail Art', -42, 'apresmidi', { notes: 'Motif géométrique noir et doré', selectedOptions: JSON.stringify([{ name: 'Complexe', price: '10€/ongle' }]), status: 'completed', totalPrice: 50, reminderSent: true, reminderSentAt: addDays(today, -43) }),
+    makeBooking(8, 'Manucure Simple', -40, 'soir', { notes: 'Vernis semi-permanent rouge', status: 'completed', totalPrice: 25, reminderSent: true, reminderSentAt: addDays(today, -41) }),
+    makeBooking(6, 'Remplissage', -38, 'matin', { status: 'no_show', totalPrice: 35, reminderSent: true, reminderSentAt: addDays(today, -39) }),
 
     // ===== Mois précédent (M-1) =====
-    {
-      client_id: c,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(addDays(today, -32)),
-      time_slot: 'matin',
-      address: clientData[0].address,
-      notes: 'Remplissage pose gel',
-      selected_options: null,
-      status: 'completed',
-      total_price: 35.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -33)
-    },
-    {
-      client_id: c + 2,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, -30)),
-      time_slot: 'apresmidi',
-      address: clientData[2].address,
-      notes: 'Couleur bordeaux',
-      selected_options: JSON.stringify([{ name: 'French', price: '+5€' }]),
-      status: 'completed',
-      total_price: 50.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -31)
-    },
-    {
-      client_id: c + 5,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -28)),
-      time_slot: 'midi',
-      address: clientData[5].address,
-      notes: null,
-      selected_options: null,
-      status: 'completed',
-      total_price: 25.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -29)
-    },
-    {
-      client_id: c + 9,
-      service_id: svcMap['Pose Capsules'].id,
-      booking_date: fmt(addDays(today, -25)),
-      time_slot: 'matin',
-      address: clientData[9].address,
-      notes: 'Capsules stiletto, longueur moyenne',
-      selected_options: null,
-      status: 'completed',
-      total_price: 55.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -26)
-    },
-    // Cancelled M-1
-    {
-      client_id: c + 6,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -23)),
-      time_slot: 'matin',
-      address: clientData[6].address,
-      notes: null,
-      selected_options: null,
-      status: 'cancelled',
-      total_price: 25.00,
-      reminder_sent: false
-    },
+    makeBooking(0, 'Remplissage', -32, 'matin', { notes: 'Remplissage pose gel', status: 'completed', totalPrice: 35, reminderSent: true, reminderSentAt: addDays(today, -33) }),
+    makeBooking(2, 'Pose Gel UV', -30, 'apresmidi', { notes: 'Couleur bordeaux', selectedOptions: JSON.stringify([{ name: 'French', price: '+5€' }]), status: 'completed', totalPrice: 50, reminderSent: true, reminderSentAt: addDays(today, -31) }),
+    makeBooking(5, 'Manucure Simple', -28, 'midi', { status: 'completed', totalPrice: 25, reminderSent: true, reminderSentAt: addDays(today, -29) }),
+    makeBooking(9, 'Pose Capsules', -25, 'matin', { notes: 'Capsules stiletto, longueur moyenne', status: 'completed', totalPrice: 55, reminderSent: true, reminderSentAt: addDays(today, -26) }),
+    makeBooking(6, 'Manucure Simple', -23, 'matin', { status: 'cancelled', totalPrice: 25 }),
 
     // ===== Ce mois-ci — semaines passées =====
-    {
-      client_id: c,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, -20)),
-      time_slot: 'matin',
-      address: clientData[0].address,
-      notes: 'Couleur nude rosé souhaitée',
-      selected_options: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]),
-      status: 'completed',
-      total_price: 55.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -21)
-    },
-    {
-      client_id: c + 1,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -15)),
-      time_slot: 'apresmidi',
-      address: clientData[1].address,
-      notes: null,
-      selected_options: null,
-      status: 'completed',
-      total_price: 25.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -16)
-    },
-    {
-      client_id: c + 3,
-      service_id: svcMap['Pose Capsules'].id,
-      booking_date: fmt(addDays(today, -12)),
-      time_slot: 'matin',
-      address: clientData[3].address,
-      notes: 'Forme amande, longueur moyenne',
-      selected_options: null,
-      status: 'completed',
-      total_price: 55.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -13)
-    },
-    {
-      client_id: c + 2,
-      service_id: svcMap['Pédicure'].id,
-      booking_date: fmt(addDays(today, -10)),
-      time_slot: 'midi',
-      address: clientData[2].address,
-      notes: null,
-      selected_options: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]),
-      status: 'completed',
-      total_price: 40.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -11)
-    },
-    {
-      client_id: c + 7,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, -7)),
-      time_slot: 'apresmidi',
-      address: clientData[7].address,
-      notes: 'French classique',
-      selected_options: JSON.stringify([{ name: 'French', price: '+5€' }]),
-      status: 'completed',
-      total_price: 50.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -8)
-    },
-    {
-      client_id: c + 5,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(addDays(today, -5)),
-      time_slot: 'matin',
-      address: clientData[5].address,
-      notes: null,
-      selected_options: null,
-      status: 'completed',
-      total_price: 35.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -6)
-    },
-    {
-      client_id: c + 3,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(addDays(today, -3)),
-      time_slot: 'soir',
-      address: clientData[3].address,
-      notes: 'Changement de couleur : rouge bordeaux',
-      selected_options: null,
-      status: 'completed',
-      total_price: 35.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -4)
-    },
-    // No-show récent
-    {
-      client_id: c + 9,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, -2)),
-      time_slot: 'apresmidi',
-      address: clientData[9].address,
-      notes: null,
-      selected_options: null,
-      status: 'no_show',
-      total_price: 25.00,
-      reminder_sent: true,
-      reminder_sent_at: addDays(today, -3)
-    },
-    // Cancelled récent
-    {
-      client_id: c + 6,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, -1)),
-      time_slot: 'matin',
-      address: clientData[6].address,
-      notes: 'Annulé : empêchement professionnel',
-      selected_options: null,
-      status: 'cancelled',
-      total_price: 45.00,
-      reminder_sent: false
-    },
+    makeBooking(0, 'Pose Gel UV', -20, 'matin', { notes: 'Couleur nude rosé souhaitée', selectedOptions: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]), status: 'completed', totalPrice: 55, reminderSent: true, reminderSentAt: addDays(today, -21) }),
+    makeBooking(1, 'Manucure Simple', -15, 'apresmidi', { status: 'completed', totalPrice: 25, reminderSent: true, reminderSentAt: addDays(today, -16) }),
+    makeBooking(3, 'Pose Capsules', -12, 'matin', { notes: 'Forme amande, longueur moyenne', status: 'completed', totalPrice: 55, reminderSent: true, reminderSentAt: addDays(today, -13) }),
+    makeBooking(2, 'Pédicure', -10, 'midi', { selectedOptions: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]), status: 'completed', totalPrice: 40, reminderSent: true, reminderSentAt: addDays(today, -11) }),
+    makeBooking(7, 'Pose Gel UV', -7, 'apresmidi', { notes: 'French classique', selectedOptions: JSON.stringify([{ name: 'French', price: '+5€' }]), status: 'completed', totalPrice: 50, reminderSent: true, reminderSentAt: addDays(today, -8) }),
+    makeBooking(5, 'Remplissage', -5, 'matin', { status: 'completed', totalPrice: 35, reminderSent: true, reminderSentAt: addDays(today, -6) }),
+    makeBooking(3, 'Remplissage', -3, 'soir', { notes: 'Changement de couleur : rouge bordeaux', status: 'completed', totalPrice: 35, reminderSent: true, reminderSentAt: addDays(today, -4) }),
+    makeBooking(9, 'Manucure Simple', -2, 'apresmidi', { status: 'no_show', totalPrice: 25, reminderSent: true, reminderSentAt: addDays(today, -3) }),
+    makeBooking(6, 'Pose Gel UV', -1, 'matin', { notes: 'Annulé : empêchement professionnel', status: 'cancelled', totalPrice: 45 }),
 
     // ===== Aujourd'hui =====
-    {
-      client_id: c,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(today),
-      time_slot: 'matin',
-      address: clientData[0].address,
-      notes: 'Remplissage pose gel du mois dernier',
-      selected_options: null,
-      status: 'confirmed',
-      total_price: 35.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 1,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(today),
-      time_slot: 'apresmidi',
-      address: clientData[1].address,
-      notes: 'Couleur : rose pastel',
-      selected_options: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]),
-      status: 'pending',
-      total_price: 55.00,
-      reminder_sent: false
-    },
+    makeBooking(0, 'Remplissage', 0, 'matin', { notes: 'Remplissage pose gel du mois dernier', status: 'confirmed', totalPrice: 35 }),
+    makeBooking(1, 'Pose Gel UV', 0, 'apresmidi', { notes: 'Couleur : rose pastel', selectedOptions: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]), status: 'pending', totalPrice: 55 }),
 
     // ===== Demain =====
-    {
-      client_id: c + 2,
-      service_id: svcMap['Pose Capsules'].id,
-      booking_date: fmt(addDays(today, 1)),
-      time_slot: 'matin',
-      address: clientData[2].address,
-      notes: 'Forme stiletto, longueur longue, couleur noire mate',
-      selected_options: null,
-      status: 'confirmed',
-      total_price: 55.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 4,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, 1)),
-      time_slot: 'soir',
-      address: clientData[4].address,
-      notes: 'Première visite !',
-      selected_options: null,
-      status: 'pending',
-      total_price: 25.00,
-      reminder_sent: false
-    },
+    makeBooking(2, 'Pose Capsules', 1, 'matin', { notes: 'Forme stiletto, longueur longue, couleur noire mate', status: 'confirmed', totalPrice: 55 }),
+    makeBooking(4, 'Manucure Simple', 1, 'soir', { notes: 'Première visite !', status: 'pending', totalPrice: 25 }),
 
     // ===== Prochains jours =====
-    {
-      client_id: c + 3,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, 3)),
-      time_slot: 'matin',
-      address: clientData[3].address,
-      notes: 'Effet chrome miroir doré',
-      selected_options: JSON.stringify([{ name: 'French', price: '+5€' }]),
-      status: 'confirmed',
-      total_price: 50.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 7,
-      service_id: svcMap['Remplissage'].id,
-      booking_date: fmt(addDays(today, 4)),
-      time_slot: 'midi',
-      address: clientData[7].address,
-      notes: null,
-      selected_options: null,
-      status: 'pending',
-      total_price: 35.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 8,
-      service_id: svcMap['Pose Gel UV'].id,
-      booking_date: fmt(addDays(today, 5)),
-      time_slot: 'matin',
-      address: clientData[8].address,
-      notes: 'Baby boomer naturel',
-      selected_options: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]),
-      status: 'confirmed',
-      total_price: 55.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 5,
-      service_id: svcMap['Pédicure'].id,
-      booking_date: fmt(addDays(today, 5)),
-      time_slot: 'apresmidi',
-      address: clientData[5].address,
-      notes: 'Pédicure + vernis semi-permanent',
-      selected_options: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]),
-      status: 'pending',
-      total_price: 40.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c,
-      service_id: svcMap['Nail Art'].id,
-      booking_date: fmt(addDays(today, 7)),
-      time_slot: 'apresmidi',
-      address: clientData[0].address,
-      notes: 'Design floral pour mariage, 10 ongles',
-      selected_options: JSON.stringify([{ name: 'Full set', price: '-20%' }]),
-      status: 'pending',
-      total_price: 50.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 9,
-      service_id: svcMap['Manucure Simple'].id,
-      booking_date: fmt(addDays(today, 8)),
-      time_slot: 'matin',
-      address: clientData[9].address,
-      notes: null,
-      selected_options: null,
-      status: 'pending',
-      total_price: 25.00,
-      reminder_sent: false
-    },
-    {
-      client_id: c + 4,
-      service_id: svcMap['Pose Capsules'].id,
-      booking_date: fmt(addDays(today, 10)),
-      time_slot: 'apresmidi',
-      address: clientData[4].address,
-      notes: 'Capsules forme coffin, couleur nude',
-      selected_options: null,
-      status: 'pending',
-      total_price: 55.00,
-      reminder_sent: false
-    },
+    makeBooking(3, 'Pose Gel UV', 3, 'matin', { notes: 'Effet chrome miroir doré', selectedOptions: JSON.stringify([{ name: 'French', price: '+5€' }]), status: 'confirmed', totalPrice: 50 }),
+    makeBooking(7, 'Remplissage', 4, 'midi', { status: 'pending', totalPrice: 35 }),
+    makeBooking(8, 'Pose Gel UV', 5, 'matin', { notes: 'Baby boomer naturel', selectedOptions: JSON.stringify([{ name: 'Baby Boomer', price: '+10€' }]), status: 'confirmed', totalPrice: 55 }),
+    makeBooking(5, 'Pédicure', 5, 'apresmidi', { notes: 'Pédicure + vernis semi-permanent', selectedOptions: JSON.stringify([{ name: 'Gel semi-permanent', price: '+10€' }]), status: 'pending', totalPrice: 40 }),
+    makeBooking(0, 'Nail Art', 7, 'apresmidi', { notes: 'Design floral pour mariage, 10 ongles', selectedOptions: JSON.stringify([{ name: 'Full set', price: '-20%' }]), status: 'pending', totalPrice: 50 }),
+    makeBooking(9, 'Manucure Simple', 8, 'matin', { status: 'pending', totalPrice: 25 }),
+    makeBooking(4, 'Pose Capsules', 10, 'apresmidi', { notes: 'Capsules forme coffin, couleur nude', status: 'pending', totalPrice: 55 }),
   ];
 
   await knex('bookings').insert(bookings);

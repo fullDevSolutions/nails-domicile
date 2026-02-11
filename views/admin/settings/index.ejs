@@ -111,9 +111,19 @@
                         <input type="checkbox" name="is_open_<%= h.day_of_week %>" <%= h.is_open ? 'checked' : '' %>>
                         <strong><%= h.day_name %></strong>
                     </label>
-                    <input type="time" name="open_<%= h.day_of_week %>" value="<%= h.open_time %>">
-                    <span>à</span>
-                    <input type="time" name="close_<%= h.day_of_week %>" value="<%= h.close_time %>">
+                    <div class="hours-range">
+                        <span class="hours-range-label">Plage 1</span>
+                        <input type="time" name="open_<%= h.day_of_week %>" value="<%= h.open_time %>">
+                        <span>à</span>
+                        <input type="time" name="close_<%= h.day_of_week %>" value="<%= h.close_time %>">
+                    </div>
+                    <span class="hours-range-separator">+</span>
+                    <div class="hours-range">
+                        <span class="hours-range-label">Plage 2</span>
+                        <input type="time" name="open2_<%= h.day_of_week %>" value="<%= h.open_time_2 || '' %>">
+                        <span>à</span>
+                        <input type="time" name="close2_<%= h.day_of_week %>" value="<%= h.close_time_2 || '' %>">
+                    </div>
                 </div>
                 <% }) %>
             </div>

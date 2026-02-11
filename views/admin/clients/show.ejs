@@ -56,7 +56,7 @@
                 <td><%= b.id %></td>
                 <td><%= b.service_icon %> <%= b.service_name %></td>
                 <td><%= formatDate(b.booking_date) %></td>
-                <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
+                <td><%= formatTimeSlot(b.time_slot) %><%= b.time_slot_end ? ' - ' + formatTimeSlot(b.time_slot_end) : '' %></td>
                 <td><%= b.total_price %>€</td>
                 <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
                 <td><a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a></td>

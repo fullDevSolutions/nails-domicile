@@ -21,8 +21,8 @@ const bookingSchema = Joi.object({
     'date.min': 'La date doit être dans le futur',
     'any.required': 'La date est obligatoire'
   }),
-  timeSlot: Joi.string().valid('matin', 'midi', 'apresmidi', 'soir').required().messages({
-    'any.only': 'Créneau invalide',
+  timeSlot: Joi.string().pattern(/^([01]\d|2[0-3]):[03]0$/).required().messages({
+    'string.pattern.base': 'Créneau invalide (format HH:MM attendu)',
     'any.required': 'Le créneau est obligatoire'
   }),
   address: Joi.string().trim().min(10).max(255).required().messages({
@@ -31,6 +31,39 @@ const bookingSchema = Joi.object({
   }),
   notes: Joi.string().trim().max(1000).allow('').optional(),
   selectedOptions: Joi.array().items(Joi.string().trim().max(100)).optional()
+});
+
+const adminBookingSchema = Joi.object({
+  firstName: Joi.string().trim().min(2).max(50).required().messages({
+    'string.min': 'Le prénom doit contenir au moins 2 caractères',
+    'any.required': 'Le prénom est obligatoire'
+  }),
+  lastName: Joi.string().trim().min(2).max(50).required().messages({
+    'string.min': 'Le nom doit contenir au moins 2 caractères',
+    'any.required': 'Le nom est obligatoire'
+  }),
+  phone: Joi.string().trim().pattern(/^[\d\s+()-]{10,20}$/).required().messages({
+    'string.pattern.base': 'Numéro de téléphone invalide',
+    'any.required': 'Le téléphone est obligatoire'
+  }),
+  email: Joi.string().trim().email().allow('').optional(),
+  serviceId: Joi.number().integer().positive().required().messages({
+    'any.required': 'Veuillez choisir une prestation'
+  }),
+  date: Joi.date().iso().required().messages({
+    'any.required': 'La date est obligatoire'
+  }),
+  timeSlot: Joi.string().pattern(/^([01]\d|2[0-3]):[03]0$/).required().messages({
+    'string.pattern.base': 'Créneau invalide (format HH:MM attendu)',
+    'any.required': 'Le créneau est obligatoire'
+  }),
+  address: Joi.string().trim().min(5).max(255).required().messages({
+    'string.min': "L'adresse doit contenir au moins 5 caractères",
+    'any.required': "L'adresse est obligatoire"
+  }),
+  notes: Joi.string().trim().max(1000).allow('').optional(),
+  selectedOptions: Joi.array().items(Joi.string().trim().max(100)).optional(),
+  status: Joi.string().valid('pending', 'confirmed').default('confirmed')
 });
 
 const serviceSchema = Joi.object({
@@ -63,7 +96,8 @@ const blockedDateSchema = Joi.object({
     'any.required': 'La date est obligatoire'
   }),
   reason: Joi.string().trim().max(255).allow('').optional(),
-  isRecurring: Joi.boolean().default(false)
+  isRecurring: Joi.boolean().default(false),
+  blockType: Joi.string().valid('full', 'morning', 'afternoon').default('full')
 });
 
 const blogPostSchema = Joi.object({
@@ -159,6 +193,7 @@ function validate(schema) {
 
 module.exports = {
   bookingSchema,
+  adminBookingSchema,
   serviceSchema,
   testimonialSchema,
   blockedDateSchema,

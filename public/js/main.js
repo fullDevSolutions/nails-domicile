@@ -210,10 +210,10 @@ const BookingValidator = {
         },
         timeSlot: {
             required: true,
-            oneOf: ['matin', 'midi', 'apresmidi', 'soir'],
+            pattern: /^([01]\d|2[0-3]):[03]0$/,
             messages: {
                 required: 'Le créneau est obligatoire',
-                oneOf: 'Créneau invalide'
+                pattern: 'Créneau invalide'
             }
         },
         address: {
@@ -507,6 +507,9 @@ if (dateInput) {
             showNotification('Cette date n\'est pas disponible. Veuillez en choisir une autre.', 'error');
             this.value = '';
         }
+
+        // Refresh available time slots when date changes
+        loadAvailableSlots();
     });
 }
 
@@ -555,7 +558,47 @@ if (serviceSelect) {
         } catch (err) {
             // Silently fail
         }
+
+        // Refresh available time slots when service changes
+        loadAvailableSlots();
     });
+}
+
+// =================================
+// DYNAMIC AVAILABLE SLOTS
+// =================================
+async function loadAvailableSlots() {
+    const timeSlotSelect = document.getElementById('timeSlot');
+    const dateVal = document.getElementById('date')?.value;
+    const serviceVal = document.getElementById('serviceId')?.value;
+
+    if (!timeSlotSelect) return;
+
+    // Reset
+    timeSlotSelect.innerHTML = '<option value="">Choisissez d\'abord une date et une prestation</option>';
+    timeSlotSelect.disabled = true;
+
+    if (!dateVal || !serviceVal) return;
+
+    timeSlotSelect.innerHTML = '<option value="">Chargement...</option>';
+
+    try {
+        const response = await fetch(`/api/bookings/available-slots?date=${dateVal}&serviceId=${serviceVal}`);
+        const data = await response.json();
+
+        if (data.success && data.slots && data.slots.length > 0) {
+            let html = '<option value="">Choisir un créneau</option>';
+            data.slots.forEach(s => {
+                html += `<option value="${s.start}">${s.label}</option>`;
+            });
+            timeSlotSelect.innerHTML = html;
+            timeSlotSelect.disabled = false;
+        } else {
+            timeSlotSelect.innerHTML = '<option value="">Aucun créneau disponible</option>';
+        }
+    } catch (err) {
+        timeSlotSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+    }
 }
 
 function updatePriceDisplay(basePrice) {

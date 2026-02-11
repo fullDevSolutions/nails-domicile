@@ -32,8 +32,8 @@
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <ul>
-                        <li><%= site.business.phone %></li>
-                        <li><%= site.business.email %></li>
+                        <li><a href="tel:<%= site.business.phone.replace(/\s/g, '') %>"><%= site.business.phone %></a></li>
+                        <li><a href="mailto:<%= site.business.email %>"><%= site.business.email %></a></li>
                         <li><%= site.business.address.city %>, <%= site.business.address.country %></li>
                         <% if (site.features.booking) { %>
                         <li><a href="/#booking">Réserver</a></li>

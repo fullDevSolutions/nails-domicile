@@ -59,7 +59,7 @@
                     <span class="reminder-service"><%= r.service_name %></span>
                     <span class="reminder-date">
                         <%= r.booking_date.toISOString().split('T')[0] === today ? "Aujourd'hui" : 'Demain' %>
-                        — <%= timeSlotLabels[r.time_slot] || r.time_slot %>
+                        — <%= formatTimeSlot(r.time_slot) %><%= r.time_slot_end ? ' - ' + formatTimeSlot(r.time_slot_end) : '' %>
                     </span>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                 </div>
                 <div class="upcoming-date">
                     <strong><%= formatDate(b.booking_date) %></strong>
-                    <span><%= timeSlotLabels[b.time_slot] || b.time_slot %></span>
+                    <span><%= formatTimeSlot(b.time_slot) %><%= b.time_slot_end ? ' - ' + formatTimeSlot(b.time_slot_end) : '' %></span>
                 </div>
                 <span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span>
             </a>

@@ -6,6 +6,7 @@
     <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : site.seo.description %>">
 
     <link rel="canonical" href="<%= canonicalUrl %>">
+    <link rel="alternate" hreflang="fr" href="<%= canonicalUrl %>">
 
     <!-- Open Graph -->
     <meta property="og:title" content="<%= typeof title !== 'undefined' ? title : site.seo.title %>">
@@ -76,7 +77,10 @@
         },
         "areaServed": "<%= site.business.serviceArea %>",
         "priceRange": "€€",
-        "url": "<%= canonicalUrl %>"
+        "url": "<%= canonicalUrl %>",
+        <% if (site.seo.ogImage) { %>"image": "<%= site.seo.ogImage %>",<% } %>
+        "sameAs": [],
+        "@id": "<%= canonicalUrl %>#business"
     }
     </script>
 </head>

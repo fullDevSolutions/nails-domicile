@@ -7,16 +7,20 @@
 <% if (viewMode === 'calendar') { %>
 <!-- ======= CALENDAR VIEW ======= -->
 <%
+  function compactTime(t) {
+    var p = t.split(':');
+    var h = parseInt(p[0], 10);
+    var m = p[1];
+    return m === '00' ? h + 'h' : h + 'h' + m;
+  }
   const monthStr = String(calendarMonth + 1).padStart(2, '0');
   const currentMonthParam = calendarYear + '-' + monthStr;
 
-  // Previous month
   let prevYear = calendarYear;
   let prevMonth = calendarMonth - 1;
   if (prevMonth < 0) { prevMonth = 11; prevYear--; }
   const prevParam = prevYear + '-' + String(prevMonth + 1).padStart(2, '0');
 
-  // Next month
   let nextYear = calendarYear;
   let nextMonth = calendarMonth + 1;
   if (nextMonth > 11) { nextMonth = 0; nextYear++; }
@@ -25,13 +29,36 @@
   const todayStr = new Date().toISOString().split('T')[0];
 %>
 
+<!-- Legend -->
+<div class="calendar-legend">
+    <span class="legend-item"><span class="legend-dot legend-dot--available"></span> Disponible</span>
+    <span class="legend-item"><span class="legend-dot legend-dot--pending"></span> En attente</span>
+    <span class="legend-item"><span class="legend-dot legend-dot--confirmed"></span> Confirmé</span>
+    <span class="legend-item"><span class="legend-dot legend-dot--completed"></span> Terminé</span>
+    <span class="legend-item"><span class="legend-dot legend-dot--closed"></span> Fermé</span>
+</div>
+
+<!-- Calendar mode toggle -->
+<div class="calendar-mode-toggle">
+    <a href="/admin/bookings?view=calendar&calMode=week&month=<%= currentMonthParam %>" class="btn btn-sm <%= calMode === 'week' ? 'btn-primary-admin active' : '' %>">Semaine</a>
+    <a href="/admin/bookings?view=calendar&calMode=month&month=<%= currentMonthParam %>" class="btn btn-sm <%= calMode === 'month' ? 'btn-primary-admin active' : '' %>">Mois</a>
+</div>
+
+<% if (calMode === 'week') { %>
+<div class="calendar-nav">
+    <a href="/admin/bookings?view=calendar&calMode=week&weekStart=<%= prevWeekStart %>&month=<%= prevWeekMonthParam %>" class="btn btn-sm">&larr; Sem. préc.</a>
+    <h2 class="calendar-nav-title">Sem. <%= weekNumber %> &mdash; <%= calendarMonthName %> <%= calendarYear %></h2>
+    <a href="/admin/bookings?view=calendar&calMode=week&weekStart=<%= nextWeekStart %>&month=<%= nextWeekMonthParam %>" class="btn btn-sm">Sem. suiv. &rarr;</a>
+</div>
+<% } else { %>
 <div class="calendar-nav">
     <a href="/admin/bookings?view=calendar&month=<%= prevParam %>" class="btn btn-sm">&larr; Précédent</a>
     <h2 class="calendar-nav-title"><%= calendarMonthName %> <%= calendarYear %></h2>
     <a href="/admin/bookings?view=calendar&month=<%= nextParam %>" class="btn btn-sm">Suivant &rarr;</a>
 </div>
+<% } %>
 
-<div class="calendar-grid">
+<div class="calendar-grid<%= calMode === 'week' ? ' calendar-grid--week' : '' %>">
     <div class="calendar-header-cell">Lun</div>
     <div class="calendar-header-cell">Mar</div>
     <div class="calendar-header-cell">Mer</div>
@@ -40,45 +67,182 @@
     <div class="calendar-header-cell">Sam</div>
     <div class="calendar-header-cell">Dim</div>
 
+    <% if (calMode !== 'week') { %>
     <% for (let i = 0; i < calendarFirstDayOfWeek; i++) { %>
-    <div class="calendar-cell empty"></div>
+    <div class="calendar-cell calendar-cell--empty"></div>
+    <% } %>
     <% } %>
 
-    <% for (let day = 1; day <= calendarDaysInMonth; day++) { %>
     <%
-      const dayStr = calendarYear + '-' + monthStr + '-' + String(day).padStart(2, '0');
-      const dayBookings = calendarData[dayStr] || [];
-      const isToday = dayStr === todayStr;
-      const isSelected = dayStr === selectedDay;
-      let cellClass = 'calendar-cell';
-      if (isToday) cellClass += ' today';
-      if (isSelected) cellClass += ' selected';
-      if (dayBookings.length > 0) cellClass += ' has-bookings';
+    const calDays = [];
+    if (calMode === 'week') {
+      weekDays.forEach(function(wd) {
+        const wdDate = new Date(wd + 'T00:00:00');
+        calDays.push({ dayStr: wd, day: wdDate.getDate(), inCurrentMonth: (wdDate.getMonth() === calendarMonth && wdDate.getFullYear() === calendarYear) });
+      });
+    } else {
+      for (let d = 1; d <= calendarDaysInMonth; d++) {
+        calDays.push({ dayStr: calendarYear + '-' + monthStr + '-' + String(d).padStart(2, '0'), day: d, inCurrentMonth: true });
+      }
+    }
     %>
-    <a href="/admin/bookings?view=calendar&month=<%= currentMonthParam %>&day=<%= dayStr %>" class="<%= cellClass %>">
-        <span class="calendar-day-number"><%= day %></span>
-        <% if (dayBookings.length > 0) { %>
-        <div class="calendar-dots">
-            <% dayBookings.forEach(function(b) { %>
-            <span class="calendar-dot" style="background: <%= statusColors[b.status] || '#ccc' %>" title="<%= statusLabels[b.status] %>"></span>
-            <% }) %>
+
+    <% calDays.forEach(function(cd) { %>
+    <%
+      const dayData = calendarData[cd.dayStr] || { isOpen: true, isBlocked: false, isPast: false, slots: [], bookingCount: 0, availableCount: 0, cancelledBookings: [] };
+      const isToday = cd.dayStr === todayStr;
+      const isSelected = cd.dayStr === selectedDay;
+      const isClosed = !dayData.isOpen || dayData.isBlocked;
+
+      let cellClass = 'calendar-cell';
+      if (!cd.inCurrentMonth) cellClass += ' calendar-cell--other-month';
+      if (isToday) cellClass += ' calendar-cell--today';
+      if (isSelected) cellClass += ' calendar-cell--selected';
+      if (dayData.isPast) cellClass += ' calendar-cell--past';
+      if (isClosed && cd.inCurrentMonth) cellClass += ' calendar-cell--closed';
+    %>
+    <div class="<%= cellClass %>" data-date="<%= cd.dayStr %>" data-action="select-day">
+        <div class="calendar-cell__header">
+            <span class="calendar-day-number"><%= cd.day %></span>
+            <% if (isClosed && cd.inCurrentMonth) { %>
+            <span class="calendar-cell__badge-closed">Fermé</span>
+            <% } %>
         </div>
-        <span class="calendar-count"><%= dayBookings.length %> RDV</span>
+        <% if (!isClosed && cd.inCurrentMonth) { %>
+        <div class="calendar-cell__slots">
+          <%
+            let lastBkId = null;
+            let prevEnd = null;
+            dayData.slots.forEach(function(slot) {
+              if (prevEnd && slot.time > prevEnd) { %>
+                <div class="slot-card slot-card--break"></div>
+              <% }
+              prevEnd = slot.endTime;
+
+              let sc = 'slot-card';
+              let firstOfBk = false;
+              if (slot.booking) {
+                sc += ' slot-card--' + slot.booking.status;
+                if (slot.booking.id !== lastBkId) {
+                  firstOfBk = true;
+                  lastBkId = slot.booking.id;
+                } else {
+                  sc += ' slot-card--cont';
+                }
+              } else if (slot.available && !dayData.isPast) {
+                sc += ' slot-card--available';
+              } else {
+                sc += ' slot-card--disabled';
+              }
+          %>
+          <div class="<%= sc %>"
+               <% if (slot.available && !dayData.isPast) { %>
+               data-action="quick-book" data-date="<%= cd.dayStr %>" data-slot="<%= slot.time %>"
+               <% } else if (slot.booking) { %>
+               data-action="view-booking"
+               data-booking-id="<%= slot.booking.id %>"
+               data-booking-firstname="<%= slot.booking.first_name %>"
+               data-booking-lastname="<%= slot.booking.last_name %>"
+               data-booking-phone="<%= slot.booking.phone %>"
+               data-booking-service="<%= slot.booking.service_icon %> <%= slot.booking.service_name %>"
+               data-booking-time="<%= slot.booking.time_slot %>"
+               data-booking-timeend="<%= slot.booking.time_slot_end || '' %>"
+               data-booking-price="<%= slot.booking.total_price %>"
+               data-booking-status="<%= slot.booking.status %>"
+               data-booking-date="<%= cd.dayStr %>"
+               title="<%= slot.booking.first_name %> <%= slot.booking.last_name %> — <%= slot.booking.service_name %>"
+               <% } %>
+          >
+            <span class="slot-card__time"><%= compactTime(slot.time) %></span>
+            <% if (slot.booking && firstOfBk) { %>
+              <span class="slot-card__icon"><%= slot.booking.service_icon %></span>
+            <% } else if (slot.available && !dayData.isPast) { %>
+              <span class="slot-card__add">+</span>
+            <% } %>
+          </div>
+          <% }) %>
+        </div>
         <% } %>
-    </a>
-    <% } %>
+    </div>
+    <% }) %>
 </div>
 
 <% if (selectedDay) { %>
-<div class="day-detail">
-    <h3><%
-      const sd = new Date(selectedDay + 'T00:00:00');
-      const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-    %><%= dayNames[sd.getDay()] %> <%= sd.getDate() %> <%= calendarMonthName %> <%= calendarYear %></h3>
+<%
+  const sd = new Date(selectedDay + 'T00:00:00');
+  const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const sdData = calendarData[selectedDay] || { isOpen: true, isBlocked: false, isPast: false, slots: [], cancelledBookings: [] };
+  const sdIsClosed = !sdData.isOpen || sdData.isBlocked;
+%>
+<div class="day-detail" id="dayDetail">
+    <h3><%= dayNames[sd.getDay()] %> <%= sd.getDate() %> <%= calendarMonthName %> <%= calendarYear %></h3>
 
-    <% if (selectedDayBookings.length === 0) { %>
-    <p class="empty-state">Aucune réservation ce jour.</p>
+    <% if (sdIsClosed) { %>
+    <p class="empty-state">Ce jour est fermé.</p>
+    <% } else if (selectedDaySlots.length === 0) { %>
+    <p class="empty-state">Aucun créneau configuré.</p>
     <% } else { %>
+    <div class="day-timeline">
+        <%
+          let prevEndTime = null;
+          selectedDaySlots.forEach(function(slot, idx) {
+            // Detect break between ranges (e.g. 12:00 gap before 13:00)
+            if (prevEndTime && slot.time > prevEndTime) {
+        %>
+        <div class="timeline-slot timeline-slot--break">
+            <span class="timeline-time"><%= prevEndTime.replace(':', 'h') %> - <%= slot.time.replace(':', 'h') %></span>
+            <span class="timeline-content timeline-break-label">Pause</span>
+        </div>
+        <%
+            }
+            prevEndTime = slot.endTime;
+
+            let slotClass = 'timeline-slot';
+            if (slot.booking) {
+                slotClass += ' timeline-slot--' + slot.booking.status;
+            } else if (slot.available && !sdData.isPast) {
+                slotClass += ' timeline-slot--available';
+            } else {
+                slotClass += ' timeline-slot--disabled';
+            }
+        %>
+        <div class="<%= slotClass %>"
+             <% if (slot.available && !sdData.isPast) { %>
+             data-action="quick-book" data-date="<%= selectedDay %>" data-slot="<%= slot.time %>"
+             <% } else if (slot.booking) { %>
+             data-action="view-booking"
+             data-booking-id="<%= slot.booking.id %>"
+             data-booking-firstname="<%= slot.booking.first_name %>"
+             data-booking-lastname="<%= slot.booking.last_name %>"
+             data-booking-phone="<%= slot.booking.phone %>"
+             data-booking-service="<%= slot.booking.service_icon %> <%= slot.booking.service_name %>"
+             data-booking-time="<%= slot.booking.time_slot %>"
+             data-booking-timeend="<%= slot.booking.time_slot_end || '' %>"
+             data-booking-price="<%= slot.booking.total_price %>"
+             data-booking-status="<%= slot.booking.status %>"
+             data-booking-date="<%= selectedDay %>"
+             <% } %>
+        >
+            <span class="timeline-time"><%= slot.time.replace(':', 'h') %></span>
+            <span class="timeline-content">
+                <% if (slot.booking) { %>
+                    <span class="timeline-booking-info">
+                        <span class="status-badge status-<%= slot.booking.status %>" style="font-size:0.65rem;padding:0.1rem 0.4rem;"><%= statusLabels[slot.booking.status] %></span>
+                        <strong><%= slot.booking.first_name %> <%= slot.booking.last_name %></strong>
+                        <span class="timeline-service"><%= slot.booking.service_icon %> <%= slot.booking.service_name %></span>
+                    </span>
+                <% } else if (slot.available && !sdData.isPast) { %>
+                    <span class="timeline-available-label">Disponible</span>
+                <% } else { %>
+                    <span class="timeline-disabled-label">—</span>
+                <% } %>
+            </span>
+        </div>
+        <% }) %>
+    </div>
+
+    <% if (selectedDayBookings.length > 0) { %>
+    <h4 style="margin-top:1.5rem; margin-bottom:0.75rem;">Détail des réservations</h4>
     <div class="table-responsive">
         <table class="admin-table">
             <thead>
@@ -94,20 +258,148 @@
             <tbody>
                 <% selectedDayBookings.forEach(function(b) { %>
                 <tr>
-                    <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
-                    <td><strong><%= b.first_name %> <%= b.last_name %></strong><br><small><%= maskPhone(b.phone) %></small></td>
+                    <td><%= formatTimeSlot(b.time_slot) %><%= b.time_slot_end ? ' - ' + formatTimeSlot(b.time_slot_end) : '' %></td>
+                    <td><strong><%= b.first_name %> <%= b.last_name %></strong><br><small><%= b.phone %></small></td>
                     <td><%= b.service_icon %> <%= b.service_name %></td>
                     <td><%= b.total_price %>&euro;</td>
                     <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
-                    <td><a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/admin/bookings/<%= b.id %>" class="btn btn-sm">Voir</a>
+                            <% if (b.status === 'pending') { %>
+                            <form method="POST" action="/admin/bookings/<%= b.id %>/status" style="display:inline;">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="status" value="confirmed">
+                                <button type="submit" class="btn btn-sm btn-success">Confirmer</button>
+                            </form>
+                            <% } %>
+                        </div>
+                    </td>
                 </tr>
                 <% }) %>
             </tbody>
         </table>
     </div>
     <% } %>
+    <% } %>
 </div>
 <% } %>
+
+<!-- Quick Booking Modal -->
+<div class="modal-overlay" id="qbModal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Nouvelle réservation</h3>
+            <button type="button" class="modal-close" id="qbClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="qb-context">
+                <span class="qb-badge" id="qbDateBadge"></span>
+                <span class="qb-badge qb-badge--slot" id="qbSlotBadge"></span>
+            </div>
+
+            <input type="hidden" id="qbDate">
+            <input type="hidden" id="qbSlot">
+            <input type="hidden" id="qbCsrf" value="<%= csrfToken %>">
+
+            <div class="form-group-admin" style="position:relative;">
+                <label>Téléphone client</label>
+                <input type="tel" id="qbPhone" placeholder="06 12 34 56 78" autocomplete="off">
+                <div class="client-search-results" id="qbClientResults"></div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Prénom</label>
+                    <input type="text" id="qbFirstName">
+                </div>
+                <div class="form-group-admin">
+                    <label>Nom</label>
+                    <input type="text" id="qbLastName">
+                </div>
+            </div>
+
+            <div class="form-row-admin">
+                <div class="form-group-admin">
+                    <label>Email</label>
+                    <input type="email" id="qbEmail" placeholder="Optionnel">
+                </div>
+            </div>
+
+            <div class="form-group-admin">
+                <label>Adresse</label>
+                <input type="text" id="qbAddress" placeholder="Adresse de la prestation">
+            </div>
+
+            <div class="form-group-admin">
+                <label>Prestation</label>
+                <select id="qbService">
+                    <option value="">-- Choisir --</option>
+                    <% services.forEach(function(s) { %>
+                    <option value="<%= s.id %>" data-price="<%= s.price %>" data-icon="<%= s.icon %>" data-duration="<%= s.duration_minutes %>"><%= s.icon %> <%= s.name %> — <%= s.price %>&euro; (<%= s.duration_minutes %>min)</option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <div class="form-group-admin" id="qbOptionsContainer" style="display:none;">
+                <label>Options</label>
+                <div id="qbOptions"></div>
+            </div>
+
+            <div class="qb-price-display" id="qbPriceDisplay" style="display:none;">
+                Total : <strong id="qbPriceValue">0</strong>&euro;
+            </div>
+
+            <div class="form-group-admin">
+                <label>Notes</label>
+                <textarea id="qbNotes" rows="2" placeholder="Optionnel"></textarea>
+            </div>
+
+            <div class="form-group-admin">
+                <label>Statut initial</label>
+                <select id="qbStatus">
+                    <option value="confirmed" selected>Confirmé</option>
+                    <option value="pending">En attente</option>
+                </select>
+            </div>
+
+            <div id="qbErrors" class="alert alert-error" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" id="qbCancel">Annuler</button>
+            <button type="button" class="btn btn-primary-admin" id="qbSubmit">Créer le RDV</button>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Info Modal -->
+<div class="modal-overlay" id="biModal">
+    <div class="modal-panel" style="max-width:420px;">
+        <div class="modal-header">
+            <h3>Réservation <span id="biId"></span></h3>
+            <button type="button" class="modal-close" id="biClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="bi-status-row">
+                <span class="status-badge" id="biBadge"></span>
+            </div>
+            <div class="bi-section">
+                <div class="bi-row"><span class="bi-label">Date</span><span id="biDate"></span></div>
+                <div class="bi-row"><span class="bi-label">Créneau</span><span id="biTime"></span></div>
+            </div>
+            <div class="bi-section">
+                <div class="bi-row"><span class="bi-label">Client</span><span id="biClient"></span></div>
+                <div class="bi-row"><span class="bi-label">Téléphone</span><a id="biPhone" href="#" style="color:var(--admin-primary);text-decoration:none;"></a></div>
+            </div>
+            <div class="bi-section">
+                <div class="bi-row"><span class="bi-label">Prestation</span><span id="biService"></span></div>
+                <div class="bi-row"><span class="bi-label">Prix</span><strong id="biPrice"></strong></div>
+            </div>
+            <div id="biErrors" class="alert alert-error" style="display:none;"></div>
+        </div>
+        <div class="modal-footer" id="biFooter"></div>
+    </div>
+</div>
 
 <% } else { %>
 <!-- ======= LIST VIEW ======= -->
@@ -164,7 +456,7 @@
                 </td>
                 <td><%= b.service_icon %> <%= b.service_name %></td>
                 <td><%= formatDate(b.booking_date) %></td>
-                <td><%= timeSlotLabels[b.time_slot] || b.time_slot %></td>
+                <td><%= formatTimeSlot(b.time_slot) %><%= b.time_slot_end ? ' - ' + formatTimeSlot(b.time_slot_end) : '' %></td>
                 <td><%= b.total_price %>&euro;</td>
                 <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>
                 <td>

@@ -59,6 +59,17 @@ const timeSlotLabels = {
   soir: 'Fin de journée (17h-19h)'
 };
 
+function formatTimeSlot(time) {
+  if (!time) return '';
+  return time.replace(':', 'h');
+}
+
+function addMinutesToTime(time, minutes) {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + minutes;
+  return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+}
+
 const statusLabels = {
   pending: 'En attente',
   confirmed: 'Confirmé',
@@ -109,6 +120,8 @@ module.exports = {
   maskPhone,
   maskEmail,
   timeSlotLabels,
+  formatTimeSlot,
+  addMinutesToTime,
   statusLabels,
   statusColors
 };

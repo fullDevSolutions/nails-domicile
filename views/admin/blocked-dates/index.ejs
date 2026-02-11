@@ -11,6 +11,20 @@
                 <label for="reason">Motif (optionnel)</label>
                 <input type="text" id="reason" name="reason" placeholder="Ex: Vacances, Jour férié...">
             </div>
+            <div class="form-group-admin">
+                <label>Type de blocage</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.3rem; margin: 0; font-weight: normal; cursor: pointer;">
+                        <input type="radio" name="blockType" value="full" checked> Journée entière
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.3rem; margin: 0; font-weight: normal; cursor: pointer;">
+                        <input type="radio" name="blockType" value="morning"> Matin (Plage 1)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.3rem; margin: 0; font-weight: normal; cursor: pointer;">
+                        <input type="radio" name="blockType" value="afternoon"> Après-midi (Plage 2)
+                    </label>
+                </div>
+            </div>
             <div class="form-group-admin" style="display: flex; align-items: center; gap: 0.5rem;">
                 <input type="checkbox" id="isRecurring" name="isRecurring" value="true">
                 <label for="isRecurring" style="margin: 0;">Récurrent chaque année</label>
@@ -32,6 +46,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Motif</th>
+                    <th>Type</th>
                     <th>Récurrent</th>
                     <th>Actions</th>
                 </tr>
@@ -41,6 +56,15 @@
                 <tr>
                     <td><strong><%= formatDate(bd.blocked_date) %></strong></td>
                     <td><%= bd.reason || '—' %></td>
+                    <td>
+                        <% if (bd.block_type === 'morning') { %>
+                        <span class="badge" style="background: #f59e0b; color: #fff;">Matin</span>
+                        <% } else if (bd.block_type === 'afternoon') { %>
+                        <span class="badge" style="background: #3b82f6; color: #fff;">Après-midi</span>
+                        <% } else { %>
+                        <span class="badge badge-gray">Journée</span>
+                        <% } %>
+                    </td>
                     <td>
                         <% if (bd.is_recurring) { %>
                         <span class="badge badge-gold">Chaque année</span>

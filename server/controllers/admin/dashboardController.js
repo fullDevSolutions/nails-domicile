@@ -1,6 +1,6 @@
 const Booking = require('../../models/Booking');
 const Client = require('../../models/Client');
-const { formatDate, timeSlotLabels, statusLabels, statusColors } = require('../../utils/helpers');
+const { formatDate, formatTimeSlot, statusLabels, statusColors } = require('../../utils/helpers');
 
 const dashboardController = {
   async index(req, res) {
@@ -26,7 +26,7 @@ const dashboardController = {
         chartData,
         reminders,
         formatDate,
-        timeSlotLabels,
+        formatTimeSlot,
         statusLabels,
         statusColors
       });
@@ -42,7 +42,7 @@ const dashboardController = {
         chartData: [],
         reminders: [],
         formatDate,
-        timeSlotLabels,
+        formatTimeSlot,
         statusLabels,
         statusColors
       });

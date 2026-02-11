@@ -70,6 +70,8 @@ const settingsController = {
           dayOfWeek: i,
           openTime: req.body[`open_${i}`] || '09:00',
           closeTime: req.body[`close_${i}`] || '19:00',
+          openTime2: req.body[`open2_${i}`] || null,
+          closeTime2: req.body[`close2_${i}`] || null,
           isOpen: req.body[`is_open_${i}`] === 'on'
         });
       }

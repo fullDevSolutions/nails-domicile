@@ -9,6 +9,8 @@ const BusinessHour = {
     return db('business_hours').where({ day_of_week: dayOfWeek }).update({
       open_time: data.openTime,
       close_time: data.closeTime,
+      open_time_2: data.openTime2 || null,
+      close_time_2: data.closeTime2 || null,
       is_open: data.isOpen
     });
   },
@@ -20,6 +22,8 @@ const BusinessHour = {
         await trx('business_hours').where({ day_of_week: h.dayOfWeek }).update({
           open_time: h.openTime || '09:00',
           close_time: h.closeTime || '19:00',
+          open_time_2: h.openTime2 || null,
+          close_time_2: h.closeTime2 || null,
           is_open: h.isOpen
         });
       }

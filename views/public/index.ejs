@@ -133,14 +133,14 @@
                             <div class="booking-detail-icon">🕐</div>
                             <div>
                                 <strong>Horaires</strong><br>
-                                Lun-Sam : 9h-19h
+                                Lun-Sam : 9h-12h / 13h-19h
                             </div>
                         </div>
                         <div class="booking-detail">
                             <div class="booking-detail-icon">📱</div>
                             <div>
                                 <strong>Contact direct</strong><br>
-                                <%= site.business.phone %>
+                                <a href="tel:<%= site.business.phone.replace(/\s/g, '') %>" style="color:inherit;text-decoration:none;"><%= site.business.phone %></a>
                             </div>
                         </div>
                     </div>
@@ -191,13 +191,9 @@
                             <input type="date" id="date" name="date" required>
                         </div>
                         <div class="form-group">
-                            <label for="timeSlot">Créneau préféré *</label>
-                            <select id="timeSlot" name="timeSlot" required>
-                                <option value="">Choisir</option>
-                                <option value="matin">Matin (9h-12h)</option>
-                                <option value="midi">Midi (12h-14h)</option>
-                                <option value="apresmidi">Après-midi (14h-17h)</option>
-                                <option value="soir">Fin de journée (17h-19h)</option>
+                            <label for="timeSlot">Créneau horaire *</label>
+                            <select id="timeSlot" name="timeSlot" required disabled>
+                                <option value="">Choisissez d'abord une date et une prestation</option>
                             </select>
                         </div>
                     </div>

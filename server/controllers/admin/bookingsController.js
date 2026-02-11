@@ -1,8 +1,10 @@
 const Booking = require('../../models/Booking');
 const Service = require('../../models/Service');
 const Client = require('../../models/Client');
+const BusinessHour = require('../../models/BusinessHour');
+const BlockedDate = require('../../models/BlockedDate');
 const { sendBookingStatusUpdate } = require('../../utils/mailer');
-const { formatDate, getMonthName, timeSlotLabels, statusLabels, statusColors } = require('../../utils/helpers');
+const { formatDate, getMonthName, formatTimeSlot, addMinutesToTime, statusLabels, statusColors } = require('../../utils/helpers');
 
 const bookingsController = {
   async index(req, res) {
@@ -20,16 +22,92 @@ const bookingsController = {
           calendarMonth = parseInt(parts[1], 10) - 1;
         }
 
-        const calendarData = await Booking.monthlyCalendarData(calendarYear, calendarMonth);
-        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-        // 0=Monday ... 6=Sunday (ISO week)
+        const monthStr = String(calendarMonth + 1).padStart(2, '0');
+        const firstDay = `${calendarYear}-${monthStr}-01`;
+        const lastDate = new Date(calendarYear, calendarMonth + 1, 0);
+        const lastDayStr = `${calendarYear}-${monthStr}-${String(lastDate.getDate()).padStart(2, '0')}`;
+
+        const [businessHours, blockedDatesSet, services] = await Promise.all([
+          BusinessHour.findAll(),
+          BlockedDate.findBlockedDatesInRange(firstDay, lastDayStr),
+          Service.findAll()
+        ]);
+
+        const calendarData = await Booking.monthlyCalendarDataEnhanced(calendarYear, calendarMonth, businessHours, blockedDatesSet);
+        const daysInMonth = lastDate.getDate();
         const rawDay = new Date(calendarYear, calendarMonth, 1).getDay();
         const firstDayOfWeek = rawDay === 0 ? 6 : rawDay - 1;
 
-        const selectedDay = req.query.day || null;
-        const selectedDayBookings = selectedDay && calendarData[selectedDay] ? calendarData[selectedDay] : [];
+        // Week mode support
+        const calMode = req.query.calMode || 'month';
+        let weekStart = null;
+        let weekDays = [];
+        let prevWeekStart = null;
+        let nextWeekStart = null;
+        let prevWeekMonthParam = null;
+        let nextWeekMonthParam = null;
+        let weekNumber = null;
 
-        const services = await Service.findAll();
+        if (calMode === 'week') {
+          weekStart = req.query.weekStart || null;
+          if (!weekStart) {
+            const nowDate = new Date();
+            let refDate;
+            if (calendarYear === nowDate.getFullYear() && calendarMonth === nowDate.getMonth()) {
+              refDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+            } else {
+              refDate = new Date(calendarYear, calendarMonth, 1);
+            }
+            const dow = refDate.getDay();
+            const mondayDiff = dow === 0 ? -6 : 1 - dow;
+            refDate.setDate(refDate.getDate() + mondayDiff);
+            weekStart = refDate.getFullYear() + '-' + String(refDate.getMonth() + 1).padStart(2, '0') + '-' + String(refDate.getDate()).padStart(2, '0');
+          }
+
+          const wsDate = new Date(weekStart + 'T00:00:00');
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(wsDate);
+            d.setDate(d.getDate() + i);
+            weekDays.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+          }
+
+          const prevWs = new Date(wsDate);
+          prevWs.setDate(prevWs.getDate() - 7);
+          prevWeekStart = prevWs.getFullYear() + '-' + String(prevWs.getMonth() + 1).padStart(2, '0') + '-' + String(prevWs.getDate()).padStart(2, '0');
+          prevWeekMonthParam = prevWs.getFullYear() + '-' + String(prevWs.getMonth() + 1).padStart(2, '0');
+
+          const nextWs = new Date(wsDate);
+          nextWs.setDate(nextWs.getDate() + 7);
+          nextWeekStart = nextWs.getFullYear() + '-' + String(nextWs.getMonth() + 1).padStart(2, '0') + '-' + String(nextWs.getDate()).padStart(2, '0');
+          nextWeekMonthParam = nextWs.getFullYear() + '-' + String(nextWs.getMonth() + 1).padStart(2, '0');
+
+          // ISO week number
+          const thuDate = new Date(wsDate);
+          thuDate.setDate(thuDate.getDate() + 3);
+          const jan4 = new Date(thuDate.getFullYear(), 0, 4);
+          const jan4Day = jan4.getDay() || 7;
+          const mondayW1 = new Date(jan4);
+          mondayW1.setDate(jan4.getDate() - jan4Day + 1);
+          weekNumber = 1 + Math.round((thuDate - mondayW1) / 604800000);
+        }
+
+        const selectedDay = req.query.day || null;
+        let selectedDayBookings = [];
+        let selectedDaySlots = [];
+        if (selectedDay && calendarData[selectedDay]) {
+          const dayData = calendarData[selectedDay];
+          selectedDaySlots = dayData.slots;
+          // Gather unique bookings from slots + cancelled
+          const seenIds = new Set();
+          const slotBookings = [];
+          for (const s of dayData.slots) {
+            if (s.booking && !seenIds.has(s.booking.id)) {
+              seenIds.add(s.booking.id);
+              slotBookings.push(s.booking);
+            }
+          }
+          selectedDayBookings = [...slotBookings, ...dayData.cancelledBookings];
+        }
 
         res.render('admin/bookings/index', {
           layout: 'layouts/admin',
@@ -42,13 +120,22 @@ const bookingsController = {
           calendarMonthName: getMonthName(calendarMonth),
           calendarDaysInMonth: daysInMonth,
           calendarFirstDayOfWeek: firstDayOfWeek,
+          calMode,
+          weekStart,
+          weekDays,
+          prevWeekStart,
+          nextWeekStart,
+          prevWeekMonthParam,
+          nextWeekMonthParam,
+          weekNumber,
           selectedDay,
           selectedDayBookings,
+          selectedDaySlots,
           services,
           bookings: [],
           filters: req.query,
           formatDate,
-          timeSlotLabels,
+          formatTimeSlot,
           statusLabels,
           statusColors
         });
@@ -76,13 +163,22 @@ const bookingsController = {
           calendarMonthName: '',
           calendarDaysInMonth: 0,
           calendarFirstDayOfWeek: 0,
+          calMode: 'month',
+          weekStart: null,
+          weekDays: [],
+          prevWeekStart: null,
+          nextWeekStart: null,
+          prevWeekMonthParam: null,
+          nextWeekMonthParam: null,
+          weekNumber: null,
           selectedDay: null,
           selectedDayBookings: [],
+          selectedDaySlots: [],
           bookings,
           services,
           filters: req.query,
           formatDate,
-          timeSlotLabels,
+          formatTimeSlot,
           statusLabels,
           statusColors
         });
@@ -91,6 +187,157 @@ const bookingsController = {
       console.error('Bookings list error:', err);
       req.flash('error', 'Erreur lors du chargement des réservations.');
       res.redirect('/admin');
+    }
+  },
+
+  async store(req, res) {
+    try {
+      const data = req.validatedBody;
+
+      // Check past date/time
+      const now = new Date();
+      const bookingDateTime = new Date(data.date + 'T' + data.timeSlot + ':00');
+      if (bookingDateTime <= now) {
+        return res.status(400).json({ success: false, errors: ['Impossible de réserver dans le passé.'] });
+      }
+
+      // Check blocked date
+      const blockType = await BlockedDate.isBlocked(data.date);
+      if (blockType === 'full') {
+        return res.status(400).json({ success: false, errors: ['Cette date est bloquée.'] });
+      }
+
+      // Check business hours
+      const businessHours = await BusinessHour.findAll();
+      const dateObj = new Date(data.date + 'T00:00:00');
+      const dow = dateObj.getDay();
+      const bh = businessHours.find(h => h.day_of_week === dow);
+      if (!bh || !bh.is_open) {
+        return res.status(400).json({ success: false, errors: ['Ce jour est fermé.'] });
+      }
+
+      // Get service and compute price
+      const service = await Service.findById(data.serviceId);
+      if (!service) {
+        return res.status(400).json({ success: false, errors: ['Service introuvable.'] });
+      }
+
+      // Calculate time_slot_end
+      const timeSlotEnd = addMinutesToTime(data.timeSlot, service.duration_minutes);
+
+      // Check partial block: morning blocks range 1, afternoon blocks range 2
+      if (blockType === 'morning' && bh.open_time && bh.close_time) {
+        const rangeStart = bh.open_time.substring(0, 5);
+        const rangeEnd = bh.close_time.substring(0, 5);
+        if (data.timeSlot < rangeEnd && timeSlotEnd > rangeStart) {
+          return res.status(400).json({ success: false, errors: ['Ce créneau est dans une plage bloquée (matin).'] });
+        }
+      }
+      if (blockType === 'afternoon' && bh.open_time_2 && bh.close_time_2) {
+        const rangeStart = bh.open_time_2.substring(0, 5);
+        const rangeEnd = bh.close_time_2.substring(0, 5);
+        if (data.timeSlot < rangeEnd && timeSlotEnd > rangeStart) {
+          return res.status(400).json({ success: false, errors: ['Ce créneau est dans une plage bloquée (après-midi).'] });
+        }
+      }
+
+      // Check slot availability (overlap check)
+      const available = await Booking.isSlotAvailable(data.date, data.timeSlot, timeSlotEnd);
+      if (!available) {
+        return res.status(400).json({ success: false, errors: ['Ce créneau est déjà réservé ou chevauche une réservation existante.'] });
+      }
+
+      let totalPrice = parseFloat(service.price);
+      if (data.selectedOptions && data.selectedOptions.length > 0 && service.options) {
+        for (const optName of data.selectedOptions) {
+          const opt = service.options.find(o => o.name === optName);
+          if (opt && opt.price) {
+            const optPrice = parseFloat(opt.price.replace(/[^0-9.,]/g, '').replace(',', '.'));
+            if (!isNaN(optPrice)) totalPrice += optPrice;
+          }
+        }
+      }
+
+      // Find or create client
+      const client = await Client.findOrCreate({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        email: data.email || null,
+        address: data.address
+      });
+
+      // Create booking
+      const bookingId = await Booking.create({
+        clientId: client.id,
+        serviceId: data.serviceId,
+        date: data.date,
+        timeSlot: data.timeSlot,
+        timeSlotEnd,
+        address: data.address,
+        notes: data.notes || null,
+        selectedOptions: data.selectedOptions || [],
+        totalPrice
+      });
+
+      // Set status (default confirmed for admin)
+      const status = data.status || 'confirmed';
+      if (status !== 'pending') {
+        await Booking.updateStatus(bookingId, status);
+      }
+
+      // Increment client bookings
+      await Client.incrementBookings(client.id);
+
+      return res.json({ success: true, booking: { id: bookingId, totalPrice, status } });
+    } catch (err) {
+      console.error('Admin booking store error:', err);
+      return res.status(500).json({ success: false, errors: ['Erreur serveur lors de la création.'] });
+    }
+  },
+
+  async searchClients(req, res) {
+    try {
+      const q = (req.query.q || '').trim();
+      if (q.length < 2) {
+        return res.json([]);
+      }
+      const clients = await Client.findAll(q);
+      const results = clients.slice(0, 10).map(c => ({
+        id: c.id,
+        firstName: c.first_name,
+        lastName: c.last_name,
+        phone: c.phone,
+        email: c.email || '',
+        address: c.address || ''
+      }));
+      return res.json(results);
+    } catch (err) {
+      console.error('Search clients error:', err);
+      return res.json([]);
+    }
+  },
+
+  async calendarData(req, res) {
+    try {
+      const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+      const month = parseInt(req.query.month, 10) - 1;
+
+      const monthStr = String(month + 1).padStart(2, '0');
+      const firstDay = `${year}-${monthStr}-01`;
+      const lastDate = new Date(year, month + 1, 0);
+      const lastDayStr = `${year}-${monthStr}-${String(lastDate.getDate()).padStart(2, '0')}`;
+
+      const [businessHours, blockedDatesSet] = await Promise.all([
+        BusinessHour.findAll(),
+        BlockedDate.findBlockedDatesInRange(firstDay, lastDayStr)
+      ]);
+
+      const data = await Booking.monthlyCalendarDataEnhanced(year, month, businessHours, blockedDatesSet);
+      return res.json({ success: true, data });
+    } catch (err) {
+      console.error('Calendar data error:', err);
+      return res.status(500).json({ success: false, errors: ['Erreur serveur.'] });
     }
   },
 
@@ -108,7 +355,7 @@ const bookingsController = {
         isLoginPage: false,
         booking,
         formatDate,
-        timeSlotLabels,
+        formatTimeSlot,
         statusLabels,
         statusColors
       });

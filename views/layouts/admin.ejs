@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Espace d'administration de <%= site.business.name %>">
     <title><%= typeof title !== 'undefined' ? title + ' - Admin' : 'Admin' %> | <%= site.business.name %></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/admin.css?v=<%= Date.now() %>">
 </head>
 <body class="admin-body">
     <% if (demoMode && !isLoginPage) { %>
@@ -44,6 +46,6 @@
         </div>
     </div>
 
-    <script src="/js/admin/main.js"></script>
+    <script src="/js/admin/main.js?v=<%= Date.now() %>"></script>
 </body>
 </html>

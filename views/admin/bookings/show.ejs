@@ -18,7 +18,7 @@
         </div>
         <div class="detail-row">
             <span class="detail-label">Créneau</span>
-            <span><%= timeSlotLabels[booking.time_slot] || booking.time_slot %></span>
+            <span><%= formatTimeSlot(booking.time_slot) %><%= booking.time_slot_end ? ' - ' + formatTimeSlot(booking.time_slot_end) : '' %></span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Durée estimée</span>
