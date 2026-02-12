@@ -11,6 +11,17 @@
 
     <%- include('../partials/footer') %>
 
+    <% if (demoMode) { %>
+    <div class="demo-banner" id="demoBanner">
+        <div class="demo-banner__content">
+            <span class="demo-banner__badge">DEMO</span>
+            <span class="demo-banner__text">Ceci est une démonstration</span>
+            <a href="/admin/login" class="demo-banner__btn">Tester le dashboard admin</a>
+        </div>
+        <button class="demo-banner__close" id="demoBannerClose" aria-label="Fermer">&times;</button>
+    </div>
+    <% } %>
+
     <script src="/js/main.js?v=<%= Date.now() %>" defer></script>
     <script>
         if ('serviceWorker' in navigator) {

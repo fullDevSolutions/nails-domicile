@@ -4,7 +4,10 @@ const Client = require('../../models/Client');
 const BusinessHour = require('../../models/BusinessHour');
 const BlockedDate = require('../../models/BlockedDate');
 const { sendBookingStatusUpdate } = require('../../utils/mailer');
-const { formatDate, getMonthName, formatTimeSlot, addMinutesToTime, statusLabels, statusColors } = require('../../utils/helpers');
+const { formatDate, getMonthName, formatTimeSlot, statusLabels, statusColors } = require('../../utils/helpers');
+const { validateBooking, createBookingForClient } = require('../../services/bookingService');
+
+const isDemoMode = process.env.DEMO_MODE === 'true';
 
 const bookingsController = {
   async index(req, res) {
@@ -194,100 +197,17 @@ const bookingsController = {
     try {
       const data = req.validatedBody;
 
-      // Check past date/time
-      const now = new Date();
-      const bookingDateTime = new Date(data.date + 'T' + data.timeSlot + ':00');
-      if (bookingDateTime <= now) {
-        return res.status(400).json({ success: false, errors: ['Impossible de réserver dans le passé.'] });
+      const result = await validateBooking(data);
+      if (result.error) {
+        return res.status(400).json({ success: false, errors: [result.error] });
       }
 
-      // Check blocked date
-      const blockType = await BlockedDate.isBlocked(data.date);
-      if (blockType === 'full') {
-        return res.status(400).json({ success: false, errors: ['Cette date est bloquée.'] });
-      }
-
-      // Check business hours
-      const businessHours = await BusinessHour.findAll();
-      const dateObj = new Date(data.date + 'T00:00:00');
-      const dow = dateObj.getDay();
-      const bh = businessHours.find(h => h.day_of_week === dow);
-      if (!bh || !bh.is_open) {
-        return res.status(400).json({ success: false, errors: ['Ce jour est fermé.'] });
-      }
-
-      // Get service and compute price
-      const service = await Service.findById(data.serviceId);
-      if (!service) {
-        return res.status(400).json({ success: false, errors: ['Service introuvable.'] });
-      }
-
-      // Calculate time_slot_end
-      const timeSlotEnd = addMinutesToTime(data.timeSlot, service.duration_minutes);
-
-      // Check partial block: morning blocks range 1, afternoon blocks range 2
-      if (blockType === 'morning' && bh.open_time && bh.close_time) {
-        const rangeStart = bh.open_time.substring(0, 5);
-        const rangeEnd = bh.close_time.substring(0, 5);
-        if (data.timeSlot < rangeEnd && timeSlotEnd > rangeStart) {
-          return res.status(400).json({ success: false, errors: ['Ce créneau est dans une plage bloquée (matin).'] });
-        }
-      }
-      if (blockType === 'afternoon' && bh.open_time_2 && bh.close_time_2) {
-        const rangeStart = bh.open_time_2.substring(0, 5);
-        const rangeEnd = bh.close_time_2.substring(0, 5);
-        if (data.timeSlot < rangeEnd && timeSlotEnd > rangeStart) {
-          return res.status(400).json({ success: false, errors: ['Ce créneau est dans une plage bloquée (après-midi).'] });
-        }
-      }
-
-      // Check slot availability (overlap check)
-      const available = await Booking.isSlotAvailable(data.date, data.timeSlot, timeSlotEnd);
-      if (!available) {
-        return res.status(400).json({ success: false, errors: ['Ce créneau est déjà réservé ou chevauche une réservation existante.'] });
-      }
-
-      let totalPrice = parseFloat(service.price);
-      if (data.selectedOptions && data.selectedOptions.length > 0 && service.options) {
-        for (const optName of data.selectedOptions) {
-          const opt = service.options.find(o => o.name === optName);
-          if (opt && opt.price) {
-            const optPrice = parseFloat(opt.price.replace(/[^0-9.,]/g, '').replace(',', '.'));
-            if (!isNaN(optPrice)) totalPrice += optPrice;
-          }
-        }
-      }
-
-      // Find or create client
-      const client = await Client.findOrCreate({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        email: data.email || null,
-        address: data.address
-      });
-
-      // Create booking
-      const bookingId = await Booking.create({
-        clientId: client.id,
-        serviceId: data.serviceId,
-        date: data.date,
-        timeSlot: data.timeSlot,
-        timeSlotEnd,
-        address: data.address,
-        notes: data.notes || null,
-        selectedOptions: data.selectedOptions || [],
-        totalPrice
-      });
-
-      // Set status (default confirmed for admin)
+      const { service, timeSlotEnd, totalPrice, selectedOptions } = result;
       const status = data.status || 'confirmed';
-      if (status !== 'pending') {
-        await Booking.updateStatus(bookingId, status);
-      }
 
-      // Increment client bookings
-      await Client.incrementBookings(client.id);
+      const { bookingId } = await createBookingForClient(data, {
+        service, timeSlotEnd, totalPrice, selectedOptions, status
+      });
 
       return res.json({ success: true, booking: { id: bookingId, totalPrice, status } });
     } catch (err) {
@@ -298,11 +218,14 @@ const bookingsController = {
 
   async searchClients(req, res) {
     try {
+      if (isDemoMode) {
+        return res.json([]);
+      }
       const q = (req.query.q || '').trim();
       if (q.length < 2) {
         return res.json([]);
       }
-      const clients = await Client.findAll(q);
+      const { rows: clients } = await Client.findAll(q, 1);
       const results = clients.slice(0, 10).map(c => ({
         id: c.id,
         firstName: c.first_name,
@@ -334,6 +257,7 @@ const bookingsController = {
       ]);
 
       const data = await Booking.monthlyCalendarDataEnhanced(year, month, businessHours, blockedDatesSet);
+
       return res.json({ success: true, data });
     } catch (err) {
       console.error('Calendar data error:', err);

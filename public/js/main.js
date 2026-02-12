@@ -1,4 +1,21 @@
 // =================================
+// DEMO BANNER
+// =================================
+(function() {
+    const banner = document.getElementById('demoBanner');
+    const closeBtn = document.getElementById('demoBannerClose');
+    if (banner && closeBtn) {
+        if (sessionStorage.getItem('demoBannerClosed')) {
+            banner.classList.add('demo-banner--hidden');
+        }
+        closeBtn.addEventListener('click', function() {
+            banner.classList.add('demo-banner--hidden');
+            sessionStorage.setItem('demoBannerClosed', '1');
+        });
+    }
+})();
+
+// =================================
 // NAVIGATION MOBILE
 // =================================
 const menuToggle = document.getElementById('menuToggle');

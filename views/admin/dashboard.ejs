@@ -49,8 +49,15 @@
         <h3>🔔 Rappels — RDV aujourd'hui/demain (<%= reminders.length %>)</h3>
     </div>
     <div class="reminder-list">
-        <% const today = new Date().toISOString().split('T')[0]; %>
+        <%
+          const now2 = new Date();
+          const today = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0') + '-' + String(now2.getDate()).padStart(2,'0');
+        %>
         <% reminders.forEach(r => { %>
+        <%
+          const rd = new Date(r.booking_date);
+          const rdStr = rd.getFullYear() + '-' + String(rd.getMonth()+1).padStart(2,'0') + '-' + String(rd.getDate()).padStart(2,'0');
+        %>
         <div class="reminder-card">
             <div class="reminder-info">
                 <div class="reminder-icon"><%= r.service_icon %></div>
@@ -58,7 +65,7 @@
                     <strong><%= r.first_name %> <%= r.last_name %></strong>
                     <span class="reminder-service"><%= r.service_name %></span>
                     <span class="reminder-date">
-                        <%= r.booking_date.toISOString().split('T')[0] === today ? "Aujourd'hui" : 'Demain' %>
+                        <%= rdStr === today ? "Aujourd'hui" : 'Demain' %>
                         — <%= formatTimeSlot(r.time_slot) %><%= r.time_slot_end ? ' - ' + formatTimeSlot(r.time_slot_end) : '' %>
                     </span>
                 </div>

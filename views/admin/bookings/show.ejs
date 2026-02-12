@@ -30,7 +30,7 @@
         </div>
         <div class="detail-row">
             <span class="detail-label">Adresse</span>
-            <span><%= booking.address %></span>
+            <span><%= maskAddress(booking.address) %></span>
         </div>
         <% if (booking.selected_options && booking.selected_options.length > 0) { %>
         <div class="detail-row">

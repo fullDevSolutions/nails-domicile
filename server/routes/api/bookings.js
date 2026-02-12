@@ -7,6 +7,7 @@ const Booking = require('../../models/Booking');
 const BlockedDate = require('../../models/BlockedDate');
 const BusinessHour = require('../../models/BusinessHour');
 const Service = require('../../models/Service');
+const { addMinutesToTime, formatTimeSlot } = require('../../utils/helpers');
 
 router.post('/', bookingLimiter, validate(bookingSchema), bookingController.create);
 
@@ -30,18 +31,14 @@ router.get('/available-slots', async (req, res) => {
 
     const slots = await Booking.getAvailableSlots(date, service.duration_minutes, businessHours, blockedDatesSet);
 
-    // Format slots with end time for display
-    function addMin(time, mins) {
-      const [h, m] = time.split(':').map(Number);
-      const total = h * 60 + m + mins;
-      return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
-    }
-
-    const formatted = slots.map(s => ({
-      start: s,
-      end: addMin(s, service.duration_minutes),
-      label: s.replace(':', 'h') + ' - ' + addMin(s, service.duration_minutes).replace(':', 'h')
-    }));
+    const formatted = slots.map(s => {
+      const end = addMinutesToTime(s, service.duration_minutes);
+      return {
+        start: s,
+        end,
+        label: formatTimeSlot(s) + ' - ' + formatTimeSlot(end)
+      };
+    });
 
     res.json({ success: true, slots: formatted, duration: service.duration_minutes });
   } catch (err) {

@@ -1,17 +1,30 @@
 const db = require('../../config/database');
 
+const CLIENTS_PER_PAGE = 20;
+
 const Client = {
-  async findAll(search) {
+  async findAll(search, page = 1) {
     let query = db('clients').orderBy('created_at', 'desc');
     if (search) {
+      const term = `%${search}%`;
       query = query.where(function() {
-        this.where('first_name', 'like', `%${search}%`)
-          .orWhere('last_name', 'like', `%${search}%`)
-          .orWhere('phone', 'like', `%${search}%`)
-          .orWhere('email', 'like', `%${search}%`);
+        this.where('first_name', 'like', term)
+          .orWhere('last_name', 'like', term)
+          .orWhere('phone', 'like', term)
+          .orWhere('email', 'like', term);
       });
     }
-    return query;
+
+    // Count total for pagination
+    const countQuery = query.clone().clearSelect().clearOrder().count('id as count').first();
+    const { count } = await countQuery;
+    const totalPages = Math.max(1, Math.ceil(count / CLIENTS_PER_PAGE));
+    const currentPage = Math.min(Math.max(1, parseInt(page, 10) || 1), totalPages);
+    const offset = (currentPage - 1) * CLIENTS_PER_PAGE;
+
+    const rows = await query.limit(CLIENTS_PER_PAGE).offset(offset);
+
+    return { rows, total: count, currentPage, totalPages, perPage: CLIENTS_PER_PAGE };
   },
 
   async findById(id) {

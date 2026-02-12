@@ -3,6 +3,9 @@ const router = express.Router();
 const { isAuthenticated } = require('../../middleware/auth');
 const { validate, serviceSchema } = require('../../middleware/validator');
 const servicesController = require('../../controllers/admin/servicesController');
+const { createUpload } = require('../../middleware/upload');
+
+const uploadService = createUpload('services');
 
 router.use(isAuthenticated);
 
@@ -18,9 +21,9 @@ function preprocessServiceForm(req, res, next) {
 
 router.get('/', servicesController.index);
 router.get('/create', servicesController.createForm);
-router.post('/', preprocessServiceForm, validate(serviceSchema), servicesController.store);
+router.post('/', uploadService.single('image'), preprocessServiceForm, validate(serviceSchema), servicesController.store);
 router.get('/:id/edit', servicesController.editForm);
-router.post('/:id', preprocessServiceForm, validate(serviceSchema), servicesController.update);
+router.post('/:id', uploadService.single('image'), preprocessServiceForm, validate(serviceSchema), servicesController.update);
 router.post('/:id/toggle', servicesController.toggle);
 router.post('/reorder', servicesController.reorder);
 router.delete('/:id', servicesController.destroy);

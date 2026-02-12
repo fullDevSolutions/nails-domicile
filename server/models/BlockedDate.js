@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { toLocalDateStr } = require('../utils/helpers');
 
 const BlockedDate = {
   async findAll() {
@@ -11,16 +12,23 @@ const BlockedDate = {
   },
 
   async isBlocked(date) {
-    const dateStr = new Date(date).toISOString().split('T')[0];
+    const dateStr = toLocalDateStr(new Date(date));
     const exact = await db('blocked_dates').where({ blocked_date: dateStr }).first();
     if (exact) return exact.block_type || 'full';
 
     // Check recurring dates (same month-day, any year)
-    const month = String(new Date(date).getMonth() + 1).padStart(2, '0');
-    const day = String(new Date(date).getDate()).padStart(2, '0');
+    const dateObj = new Date(date);
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const mmdd = `${month}-${day}`;
+
+    // Use LPAD + MONTH/DAY functions instead of DATE_FORMAT for portability
     const recurring = await db('blocked_dates')
       .where({ is_recurring: true })
-      .whereRaw('DATE_FORMAT(blocked_date, "%m-%d") = ?', [`${month}-${day}`])
+      .whereRaw(
+        'CONCAT(LPAD(MONTH(blocked_date),2,"0"), "-", LPAD(DAY(blocked_date),2,"0")) = ?',
+        [mmdd]
+      )
       .first();
     return recurring ? (recurring.block_type || 'full') : null;
   },
@@ -28,8 +36,8 @@ const BlockedDate = {
   async findBlockedDatesInRange(startDate, endDate) {
     const rows = await db('blocked_dates').select('blocked_date', 'is_recurring', 'block_type');
     const blocked = new Map();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
 
     for (const row of rows) {
       const d = new Date(row.blocked_date);
@@ -39,12 +47,12 @@ const BlockedDate = {
         const cur = new Date(start);
         while (cur <= end) {
           if (cur.getMonth() === d.getMonth() && cur.getDate() === d.getDate()) {
-            blocked.set(cur.toISOString().split('T')[0], blockType);
+            blocked.set(toLocalDateStr(cur), blockType);
           }
           cur.setDate(cur.getDate() + 1);
         }
       } else {
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = toLocalDateStr(d);
         if (d >= start && d <= end) {
           blocked.set(dateStr, blockType);
         }

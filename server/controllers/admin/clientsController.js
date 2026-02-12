@@ -5,15 +5,16 @@ const { formatDate, formatTimeSlot, statusLabels, statusColors } = require('../.
 const clientsController = {
   async index(req, res) {
     try {
-      const { search } = req.query;
-      const clients = await Client.findAll(search);
+      const { search, page } = req.query;
+      const { rows: clients, total, currentPage, totalPages } = await Client.findAll(search, page);
 
       res.render('admin/clients/index', {
         layout: 'layouts/admin',
         title: 'Clients',
         isLoginPage: false,
         clients,
-        search: search || ''
+        search: search || '',
+        pagination: { total, currentPage, totalPages }
       });
     } catch (err) {
       console.error('Clients list error:', err);

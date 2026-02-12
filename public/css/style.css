@@ -349,8 +349,8 @@ button {
 }
 
 .service-icon {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     background: var(--secondary);
     border-radius: 50%;
     display: flex;
@@ -358,6 +358,13 @@ button {
     justify-content: center;
     margin: 0 auto 1.5rem;
     font-size: 2rem;
+    overflow: hidden;
+}
+
+.service-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .service-card h3 {
@@ -1543,6 +1550,106 @@ button {
         height: 40px;
         font-size: 1.5rem;
         padding: 0.5rem;
+    }
+}
+
+/* =================================
+   DEMO BANNER
+   ================================= */
+.demo-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    animation: demoBannerSlideUp 0.5s ease;
+}
+
+.demo-banner--hidden {
+    display: none;
+}
+
+.demo-banner__content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.demo-banner__badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.demo-banner__text {
+    font-weight: 400;
+}
+
+.demo-banner__btn {
+    background: #fff;
+    color: var(--primary-dark);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.demo-banner__btn:hover {
+    background: var(--secondary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.demo-banner__close {
+    background: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.3rem;
+    padding: 0.2rem 0.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.demo-banner__close:hover {
+    color: #fff;
+}
+
+@keyframes demoBannerSlideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .demo-banner {
+        padding: 0.7rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .demo-banner__text {
+        display: none;
     }
 }
 

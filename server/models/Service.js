@@ -83,10 +83,16 @@ const Service = {
 
   parseJson(row) {
     if (row.includes && typeof row.includes === 'string') {
-      try { row.includes = JSON.parse(row.includes); } catch { row.includes = []; }
+      try { row.includes = JSON.parse(row.includes); } catch (err) {
+        console.error('Failed to parse includes for service', row.id, ':', err.message);
+        row.includes = [];
+      }
     }
     if (row.options && typeof row.options === 'string') {
-      try { row.options = JSON.parse(row.options); } catch { row.options = []; }
+      try { row.options = JSON.parse(row.options); } catch (err) {
+        console.error('Failed to parse options for service', row.id, ':', err.message);
+        row.options = [];
+      }
     }
     return row;
   }

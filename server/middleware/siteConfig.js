@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const sanitizeHtml = require('sanitize-html');
-const { maskPhone, maskEmail } = require('../utils/helpers');
+const { maskPhone, maskEmail, maskAddress, maskName } = require('../utils/helpers');
 
 function sanitizeLogoText(text) {
   if (!text) return '';
@@ -31,6 +31,8 @@ function siteConfigMiddleware(req, res, next) {
   res.locals.demoMode = isDemo;
   res.locals.maskPhone = isDemo ? maskPhone : (p) => p;
   res.locals.maskEmail = isDemo ? maskEmail : (e) => e;
+  res.locals.maskAddress = isDemo ? maskAddress : (a) => a;
+  res.locals.maskName = isDemo ? maskName : (n) => n;
   const baseUrl = siteConfig.seo.canonicalUrl || `${req.protocol}://${req.get('host')}`;
   res.locals.canonicalUrl = baseUrl + req.path;
   next();

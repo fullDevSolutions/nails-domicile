@@ -27,7 +27,7 @@ const blockedDatesController = {
       req.flash('success', 'Date bloquée ajoutée avec succès.');
       res.redirect('/admin/blocked-dates');
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === 'ER_DUP_ENTRY' || err.code === '23505') {
         req.flash('error', 'Cette date est déjà bloquée.');
       } else {
         console.error('Blocked date create error:', err);

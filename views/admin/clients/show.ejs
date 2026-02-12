@@ -22,7 +22,7 @@
         <% if (clientData.address) { %>
         <div class="detail-row">
             <span class="detail-label">Adresse</span>
-            <span><%= clientData.address %></span>
+            <span><%= maskAddress(clientData.address) %></span>
         </div>
         <% } %>
         <div class="detail-row">

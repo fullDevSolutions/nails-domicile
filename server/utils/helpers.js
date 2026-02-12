@@ -70,6 +70,18 @@ function addMinutesToTime(time, minutes) {
   return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
 }
 
+/**
+ * Returns a YYYY-MM-DD string for a date in the local timezone.
+ * Avoids timezone issues from toISOString() which uses UTC.
+ */
+function toLocalDateStr(date) {
+  const d = date instanceof Date ? date : new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const statusLabels = {
   pending: 'En attente',
   confirmed: 'Confirmé',
@@ -106,7 +118,25 @@ function maskEmail(email) {
   if (!email) return '';
   const [local, domain] = email.split('@');
   if (!domain) return '••••';
-  return local[0] + '•••@' + domain;
+  if (local.length <= 2) return local[0] + '•••@' + domain;
+  return local[0] + '•'.repeat(Math.min(local.length - 2, 5)) + local[local.length - 1] + '@' + domain;
+}
+
+function maskAddress(address) {
+  if (!address) return '';
+  // Show only the city/zip part, mask the street
+  const parts = address.split(',').map(p => p.trim());
+  if (parts.length >= 2) {
+    return '•••••, ' + parts.slice(-1)[0];
+  }
+  if (address.length <= 10) return '•••••';
+  return '••••• ' + address.slice(-10);
+}
+
+function maskName(name) {
+  if (!name) return '';
+  if (name.length <= 1) return name[0] + '.';
+  return name[0] + '•'.repeat(Math.min(name.length - 1, 4));
 }
 
 module.exports = {
@@ -119,9 +149,12 @@ module.exports = {
   getMonthName,
   maskPhone,
   maskEmail,
+  maskAddress,
+  maskName,
   timeSlotLabels,
   formatTimeSlot,
   addMinutesToTime,
+  toLocalDateStr,
   statusLabels,
   statusColors
 };

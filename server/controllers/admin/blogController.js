@@ -38,7 +38,7 @@ const blogController = {
       req.flash('success', 'Article créé avec succès.');
       res.redirect('/admin/blog');
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === 'ER_DUP_ENTRY' || err.code === '23505') {
         req.flash('error', 'Un article avec ce slug existe déjà.');
       } else {
         console.error('Blog create error:', err);
@@ -78,7 +78,7 @@ const blogController = {
       req.flash('success', 'Article mis à jour.');
       res.redirect('/admin/blog');
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === 'ER_DUP_ENTRY' || err.code === '23505') {
         req.flash('error', 'Un article avec ce slug existe déjà.');
       } else {
         console.error('Blog update error:', err);

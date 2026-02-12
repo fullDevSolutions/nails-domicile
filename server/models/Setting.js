@@ -5,7 +5,10 @@ const Setting = {
     const row = await db('settings').where({ setting_key: key }).first();
     if (!row) return null;
     if (row.setting_type === 'json') {
-      try { return JSON.parse(row.setting_value); } catch { return row.setting_value; }
+      try { return JSON.parse(row.setting_value); } catch (err) {
+        console.error('Failed to parse setting JSON for key', key, ':', err.message);
+        return row.setting_value;
+      }
     }
     if (row.setting_type === 'number') return Number(row.setting_value);
     if (row.setting_type === 'boolean') return row.setting_value === 'true';
@@ -14,18 +17,12 @@ const Setting = {
 
   async set(key, value, type = 'string') {
     const stringValue = type === 'json' ? JSON.stringify(value) : String(value);
-    const exists = await db('settings').where({ setting_key: key }).first();
-    if (exists) {
-      return db('settings').where({ setting_key: key }).update({
-        setting_value: stringValue,
-        setting_type: type
-      });
-    }
-    return db('settings').insert({
-      setting_key: key,
-      setting_value: stringValue,
-      setting_type: type
-    });
+    // Use INSERT ... ON DUPLICATE KEY UPDATE to avoid race condition
+    return db.raw(
+      `INSERT INTO settings (setting_key, setting_value, setting_type) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), setting_type = VALUES(setting_type)`,
+      [key, stringValue, type]
+    );
   },
 
   async getAll() {
@@ -33,7 +30,10 @@ const Setting = {
     const result = {};
     rows.forEach(row => {
       if (row.setting_type === 'json') {
-        try { result[row.setting_key] = JSON.parse(row.setting_value); } catch { result[row.setting_key] = row.setting_value; }
+        try { result[row.setting_key] = JSON.parse(row.setting_value); } catch (err) {
+          console.error('Failed to parse setting JSON for key', row.setting_key, ':', err.message);
+          result[row.setting_key] = row.setting_value;
+        }
       } else if (row.setting_type === 'number') {
         result[row.setting_key] = Number(row.setting_value);
       } else if (row.setting_type === 'boolean') {

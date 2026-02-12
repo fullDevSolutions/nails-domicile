@@ -26,7 +26,8 @@
   if (nextMonth > 11) { nextMonth = 0; nextYear++; }
   const nextParam = nextYear + '-' + String(nextMonth + 1).padStart(2, '0');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const nowD = new Date();
+  const todayStr = nowD.getFullYear() + '-' + String(nowD.getMonth()+1).padStart(2,'0') + '-' + String(nowD.getDate()).padStart(2,'0');
 %>
 
 <!-- Legend -->
@@ -143,7 +144,7 @@
                data-booking-id="<%= slot.booking.id %>"
                data-booking-firstname="<%= slot.booking.first_name %>"
                data-booking-lastname="<%= slot.booking.last_name %>"
-               data-booking-phone="<%= slot.booking.phone %>"
+               data-booking-phone="<%= maskPhone(slot.booking.phone) %>"
                data-booking-service="<%= slot.booking.service_icon %> <%= slot.booking.service_name %>"
                data-booking-time="<%= slot.booking.time_slot %>"
                data-booking-timeend="<%= slot.booking.time_slot_end || '' %>"
@@ -214,7 +215,7 @@
              data-booking-id="<%= slot.booking.id %>"
              data-booking-firstname="<%= slot.booking.first_name %>"
              data-booking-lastname="<%= slot.booking.last_name %>"
-             data-booking-phone="<%= slot.booking.phone %>"
+             data-booking-phone="<%= maskPhone(slot.booking.phone) %>"
              data-booking-service="<%= slot.booking.service_icon %> <%= slot.booking.service_name %>"
              data-booking-time="<%= slot.booking.time_slot %>"
              data-booking-timeend="<%= slot.booking.time_slot_end || '' %>"
@@ -259,7 +260,7 @@
                 <% selectedDayBookings.forEach(function(b) { %>
                 <tr>
                     <td><%= formatTimeSlot(b.time_slot) %><%= b.time_slot_end ? ' - ' + formatTimeSlot(b.time_slot_end) : '' %></td>
-                    <td><strong><%= b.first_name %> <%= b.last_name %></strong><br><small><%= b.phone %></small></td>
+                    <td><strong><%= b.first_name %> <%= b.last_name %></strong><br><small><%= maskPhone(b.phone) %></small></td>
                     <td><%= b.service_icon %> <%= b.service_name %></td>
                     <td><%= b.total_price %>&euro;</td>
                     <td><span class="status-badge status-<%= b.status %>"><%= statusLabels[b.status] %></span></td>

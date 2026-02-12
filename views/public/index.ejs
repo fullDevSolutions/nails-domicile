@@ -26,7 +26,13 @@
             <div class="services-grid">
                 <% services.forEach(service => { %>
                 <div class="service-card fade-in" data-service-id="<%= service.id %>">
-                    <div class="service-icon"><%= service.icon %></div>
+                    <div class="service-icon">
+                        <% if (service.image) { %>
+                        <img src="<%= service.image.startsWith('http') ? service.image : '/images/services/' + service.image %>" alt="<%= service.name %>" loading="lazy" width="100" height="100">
+                        <% } else { %>
+                        <%= service.icon %>
+                        <% } %>
+                    </div>
                     <h3><%= service.name %></h3>
                     <p><%= service.description %></p>
                     <p class="service-price"><%= service.price %>€ <span>/ <%= service.price_unit %></span></p>

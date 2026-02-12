@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { toLocalDateStr } = require('../utils/helpers');
 
 const Booking = {
   async findAll(filters = {}) {
@@ -83,7 +84,7 @@ const Booking = {
   },
 
   async todayCount() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     const [{ count }] = await db('bookings')
       .where('booking_date', today)
       .whereNotIn('status', ['cancelled'])
@@ -92,7 +93,7 @@ const Booking = {
   },
 
   async todayCancelledCount() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     const [{ count }] = await db('bookings')
       .where('booking_date', today)
       .where('status', 'cancelled')
@@ -109,8 +110,8 @@ const Booking = {
 
   async monthRevenue() {
     const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const firstDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+    const lastDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
     const [result] = await db('bookings')
       .where('status', 'completed')
@@ -121,8 +122,8 @@ const Booking = {
 
   async monthForecastRevenue() {
     const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const firstDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+    const lastDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
     const [result] = await db('bookings')
       .whereIn('status', ['completed', 'confirmed'])
@@ -132,7 +133,7 @@ const Booking = {
   },
 
   async upcoming(limit = 5) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     return db('bookings')
       .join('clients', 'bookings.client_id', 'clients.id')
       .join('services', 'bookings.service_id', 'services.id')
@@ -149,10 +150,10 @@ const Booking = {
   },
 
   async needingReminder() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const tomorrowStr = toLocalDateStr(tomorrow);
 
     return db('bookings')
       .join('clients', 'bookings.client_id', 'clients.id')
@@ -177,10 +178,10 @@ const Booking = {
   },
 
   async reminderCount() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const tomorrowStr = toLocalDateStr(tomorrow);
 
     const [{ count }] = await db('bookings')
       .whereIn('booking_date', [today, tomorrowStr])
@@ -192,7 +193,12 @@ const Booking = {
 
   parseJson(row) {
     if (row.selected_options && typeof row.selected_options === 'string') {
-      try { row.selected_options = JSON.parse(row.selected_options); } catch { row.selected_options = []; }
+      try {
+        row.selected_options = JSON.parse(row.selected_options);
+      } catch (err) {
+        console.error('Failed to parse selected_options for booking', row.id, ':', err.message);
+        row.selected_options = [];
+      }
     }
     return row;
   },
@@ -320,7 +326,7 @@ const Booking = {
     }
 
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = toLocalDateStr(now);
     const nowHHMM = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     const daysInMonth = lastDate.getDate();
     const result = {};
@@ -328,7 +334,7 @@ const Booking = {
     // Group bookings by date
     const bookingsByDate = {};
     for (const row of rows) {
-      const dateStr = new Date(row.booking_date).toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(row.booking_date);
       if (!bookingsByDate[dateStr]) bookingsByDate[dateStr] = [];
       bookingsByDate[dateStr].push(row);
     }
@@ -409,11 +415,11 @@ const Booking = {
 
   async currentMonthStats() {
     const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const firstDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+    const lastDay = toLocalDateStr(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
     return db('bookings')
-      .select(db.raw("DATE_FORMAT(booking_date, '%Y-%m-%d') as date"))
+      .select(db.raw('DATE(booking_date) as date'))
       .count('id as count')
       .whereBetween('booking_date', [firstDay, lastDay])
       .whereNotIn('status', ['cancelled'])

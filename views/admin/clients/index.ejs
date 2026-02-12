@@ -39,4 +39,17 @@
         </tbody>
     </table>
 </div>
+
+<% if (pagination.totalPages > 1) { %>
+<div class="pagination" style="display:flex;gap:8px;justify-content:center;align-items:center;margin:24px 0;">
+    <% if (pagination.currentPage > 1) { %>
+    <a href="/admin/clients?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %>" class="btn btn-sm">&laquo; Préc.</a>
+    <% } %>
+    <span>Page <%= pagination.currentPage %> / <%= pagination.totalPages %> (<%= pagination.total %> clients)</span>
+    <% if (pagination.currentPage < pagination.totalPages) { %>
+    <a href="/admin/clients?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %>" class="btn btn-sm">Suiv. &raquo;</a>
+    <% } %>
+</div>
+<% } %>
+
 <% } %>

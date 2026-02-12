@@ -3,7 +3,7 @@
 </div>
 
 <div class="form-card">
-    <form method="POST" action="<%= service ? '/admin/services/' + service.id : '/admin/services' %>">
+    <form method="POST" action="<%= service ? '/admin/services/' + service.id : '/admin/services' %>" enctype="multipart/form-data">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
         <div class="form-row-admin">
@@ -12,9 +12,20 @@
                 <input type="text" id="name" name="name" required value="<%= service ? service.name : '' %>" placeholder="Ex: Manucure Simple">
             </div>
             <div class="form-group-admin">
-                <label for="icon">Icône (emoji)</label>
+                <label for="icon">Icône (emoji, utilisée si pas de photo)</label>
                 <input type="text" id="icon" name="icon" value="<%= service ? service.icon : '💅' %>" maxlength="10" style="font-size: 1.5rem;">
             </div>
+        </div>
+
+        <div class="form-group-admin">
+            <label for="image">Photo du service</label>
+            <% if (service && service.image) { %>
+            <div style="margin-bottom: 0.5rem;">
+                <img src="<%= service.image.startsWith('http') ? service.image : '/images/services/' + service.image %>" alt="<%= service.name %>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid var(--border);">
+            </div>
+            <% } %>
+            <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+            <small>JPG, PNG ou WebP (max 5 Mo). Laissez vide pour garder la photo actuelle.</small>
         </div>
 
         <div class="form-row-admin">

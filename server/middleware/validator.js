@@ -74,6 +74,7 @@ const serviceSchema = Joi.object({
   priceUnit: Joi.string().trim().max(50).default('séance'),
   durationMinutes: Joi.number().integer().positive().max(480).required(),
   icon: Joi.string().max(10).default('💅'),
+  image: Joi.string().trim().max(500).allow('').optional(),
   includes: Joi.array().items(Joi.string().trim().max(100)).optional(),
   options: Joi.array().items(Joi.object({
     name: Joi.string().trim().max(100),

@@ -1,5 +1,36 @@
+const path = require('path');
+const fsPromises = require('fs').promises;
+const sharp = require('sharp');
 const Service = require('../../models/Service');
 const { slugify } = require('../../utils/helpers');
+
+async function optimizeServiceImage(file) {
+  const originalPath = file.path;
+  const ext = path.extname(file.filename);
+  const optimizedFilename = file.filename.replace(ext, '.webp');
+  const optimizedPath = path.join(path.dirname(originalPath), optimizedFilename);
+
+  await sharp(originalPath)
+    .resize(600, 600, { fit: 'cover' })
+    .webp({ quality: 80 })
+    .toFile(optimizedPath);
+
+  if (originalPath !== optimizedPath) {
+    await fsPromises.unlink(originalPath);
+  }
+
+  return optimizedFilename;
+}
+
+async function deleteServiceImage(filename) {
+  if (!filename || filename.startsWith('http')) return;
+  const filePath = path.join(__dirname, '../../../public/images/services', filename);
+  try {
+    await fsPromises.unlink(filePath);
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('Service image cleanup:', err.message);
+  }
+}
 
 const servicesController = {
   async index(req, res) {
@@ -31,6 +62,10 @@ const servicesController = {
     try {
       const data = req.validatedBody;
       data.slug = data.slug || slugify(data.name);
+
+      if (req.file) {
+        data.image = await optimizeServiceImage(req.file);
+      }
 
       await Service.create(data);
       req.flash('success', 'Service créé avec succès.');
@@ -67,6 +102,12 @@ const servicesController = {
     try {
       const data = req.validatedBody;
       data.slug = data.slug || slugify(data.name);
+
+      if (req.file) {
+        const service = await Service.findById(req.params.id);
+        if (service) await deleteServiceImage(service.image);
+        data.image = await optimizeServiceImage(req.file);
+      }
 
       await Service.update(req.params.id, data);
       req.flash('success', 'Service mis à jour.');

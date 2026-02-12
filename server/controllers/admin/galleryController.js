@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const sharp = require('sharp');
 const GalleryImage = require('../../models/GalleryImage');
 
@@ -40,7 +41,7 @@ const galleryController = {
 
       // Remove original if different from optimized
       if (originalPath !== optimizedPath) {
-        fs.unlinkSync(originalPath);
+        await fsPromises.unlink(originalPath);
       }
 
       await GalleryImage.create({
@@ -92,11 +93,15 @@ const galleryController = {
     try {
       const image = await GalleryImage.findById(req.params.id);
       if (image) {
-        const filePath = path.join(__dirname, '../../../public/images/gallery', image.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        // Delete from DB first, then clean up the file
         await GalleryImage.delete(req.params.id);
+        const filePath = path.join(__dirname, '../../../public/images/gallery', image.filename);
+        try {
+          await fsPromises.unlink(filePath);
+        } catch (fileErr) {
+          // DB record is already gone - log orphaned file for manual cleanup
+          console.error('Orphaned gallery file (manual cleanup needed):', filePath, fileErr.message);
+        }
       }
       req.flash('success', 'Image supprimée.');
       res.redirect('/admin/gallery');

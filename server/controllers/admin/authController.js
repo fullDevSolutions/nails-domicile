@@ -1,5 +1,7 @@
 const AdminUser = require('../../models/AdminUser');
 
+const isDemoMode = process.env.DEMO_MODE === 'true';
+
 const authController = {
   loginPage(req, res) {
     res.render('admin/login', {
@@ -15,6 +17,12 @@ const authController = {
 
       const user = await AdminUser.findByEmail(email);
       if (!user) {
+        req.flash('error', 'Email ou mot de passe incorrect.');
+        return res.redirect('/admin/login');
+      }
+
+      // In demo mode, only allow demo role accounts to log in
+      if (isDemoMode && user.role !== 'demo') {
         req.flash('error', 'Email ou mot de passe incorrect.');
         return res.redirect('/admin/login');
       }

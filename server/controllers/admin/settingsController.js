@@ -1,13 +1,20 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const BusinessHour = require('../../models/BusinessHour');
 const AdminUser = require('../../models/AdminUser');
 const { reloadConfig, getSiteConfig } = require('../../middleware/siteConfig');
 
 const configPath = path.join(__dirname, '../../../config/site.config.json');
+const backupPath = configPath + '.bak';
 
-function saveConfig(config) {
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+async function saveConfig(config) {
+  // Create backup before overwriting
+  try {
+    await fs.copyFile(configPath, backupPath);
+  } catch {
+    // No backup if original doesn't exist yet
+  }
+  await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf8');
   reloadConfig();
 }
 
@@ -52,7 +59,7 @@ const settingsController = {
       config.business.social.facebook = facebook || '';
       config.business.social.tiktok = tiktok || '';
 
-      saveConfig(config);
+      await saveConfig(config);
       req.flash('success', 'Informations mises à jour.');
       res.redirect('/admin/settings');
     } catch (err) {
@@ -100,7 +107,7 @@ const settingsController = {
       if (bg) config.theme.colors.bg = bg;
       if (bgLight) config.theme.colors.bgLight = bgLight;
 
-      saveConfig(config);
+      await saveConfig(config);
       req.flash('success', 'Thème mis à jour.');
       res.redirect('/admin/settings');
     } catch (err) {
@@ -120,7 +127,7 @@ const settingsController = {
       config.seo.canonicalUrl = canonicalUrl || '';
       config.seo.googleAnalyticsId = googleAnalyticsId || '';
 
-      saveConfig(config);
+      await saveConfig(config);
       req.flash('success', 'SEO mis à jour.');
       res.redirect('/admin/settings');
     } catch (err) {

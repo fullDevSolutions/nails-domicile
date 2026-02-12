@@ -10,7 +10,7 @@
         <thead>
             <tr>
                 <th>Ordre</th>
-                <th>Icône</th>
+                <th>Photo</th>
                 <th>Nom</th>
                 <th>Prix</th>
                 <th>Durée</th>
@@ -22,7 +22,13 @@
             <% services.forEach((s, i) => { %>
             <tr data-id="<%= s.id %>">
                 <td class="drag-handle" style="cursor: grab;">☰ <%= i + 1 %></td>
-                <td><%= s.icon %></td>
+                <td>
+                    <% if (s.image) { %>
+                    <img src="<%= s.image.startsWith('http') ? s.image : '/images/services/' + s.image %>" alt="<%= s.name %>" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                    <% } else { %>
+                    <span style="font-size: 1.5rem;"><%= s.icon %></span>
+                    <% } %>
+                </td>
                 <td><strong><%= s.name %></strong></td>
                 <td><%= s.price %>€ / <%= s.price_unit %></td>
                 <td><%= s.duration_minutes %> min</td>
