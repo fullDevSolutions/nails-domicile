@@ -30,7 +30,7 @@ exports.seed = async function(knex) {
   if (isDemoMode) {
     users.push({
       email: 'demo@nailsbysarah.fr',
-      password_hash: await bcrypt.hash('Demo-Nails2024!', 12),
+      password_hash: await bcrypt.hash('Demo-Nails2024', 12),
       role: 'demo'
     });
   }
