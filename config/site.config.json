@@ -4,13 +4,13 @@
     "tagline": "Pose d'ongles à domicile",
     "owner": "Sarah",
     "profession": "Prothésiste ongulaire",
-    "phone": "06 XX XX XX XX",
+    "phone": "06 12 34 56 78",
     "email": "contact@nailsbysarah.fr",
-    "siret": "XXX XXX XXX XXXXX",
+    "siret": "912 345 678 00012",
     "address": {
-      "street": "",
+      "street": "12 rue des Lilas",
       "city": "Paris",
-      "zip": "75000",
+      "zip": "75011",
       "country": "France"
     },
     "serviceRadius": "15km",
@@ -59,8 +59,8 @@
   "seo": {
     "title": "Nails by Sarah - Pose d'ongles à domicile",
     "description": "Prothésiste ongulaire à domicile sur Paris et proche banlieue. Pose gel, capsules, nail art. Réservez votre rendez-vous en ligne.",
-    "ogImage": "",
-    "canonicalUrl": "",
+    "ogImage": "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&q=80",
+    "canonicalUrl": "https://nails.fulldevsolutions.fr",
     "googleAnalyticsId": ""
   },
   "features": {

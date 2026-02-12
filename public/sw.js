@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nails-v5';
+const CACHE_NAME = 'nails-v6';
 const PRECACHE_URLS = [
   '/',
   '/css/style.css',
